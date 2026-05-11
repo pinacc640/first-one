@@ -35,12 +35,19 @@ OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
 OPENAI_IMAGE_MODEL = "gpt-image-1"  # 或 "gpt-image-2"（如已开放）
 
 
-# --- 优先级 3：SiliconFlow 硅基流动（国内推荐，注册送免费额度）---
+# --- 优先级 3：SiliconFlow 硅基流动（国内推荐）---
 # 获取地址：https://cloud.siliconflow.cn/account/ak
-# 免费：新账号送 ¥14 额度，约可生成 700+ 张 FLUX.1 图
-# 质量：FLUX.1-dev 接近 Gemini 水平
+# 注意：平台会不时调整哪些图像模型需要付费/实名认证。
+# 下面按质量优先级列了一组候选模型，运行时会依次尝试，
+# 直到找到你账号能用的那个。遇到 "Model disabled" 会自动跳到下一个。
 SILICONFLOW_API_KEY = os.environ.get("SILICONFLOW_API_KEY", "")
-SILICONFLOW_MODEL = "black-forest-labs/FLUX.1-dev"
+SILICONFLOW_MODELS = [
+    "Kwai-Kolors/Kolors",                      # 可图，中文效果好，通常免费可用
+    "black-forest-labs/FLUX.1-schnell",        # FLUX 快速版，质量不错
+    "stabilityai/stable-diffusion-3-5-large",  # SD 3.5 Large
+    "black-forest-labs/FLUX.1-dev",            # FLUX dev 完整版（可能需付费）
+    "stabilityai/stable-diffusion-xl-base-1.0",# SDXL 兜底
+]
 
 
 # --- 优先级 4：Pollinations（完全免费兜底，无需 key）---

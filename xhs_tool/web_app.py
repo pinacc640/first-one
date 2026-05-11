@@ -32,7 +32,7 @@ from config import (
     OPENAI_API_KEY,
     OPENAI_IMAGE_MODEL,
     SILICONFLOW_API_KEY,
-    SILICONFLOW_MODEL,
+    SILICONFLOW_MODELS,
     POLLINATIONS_MODEL,
     IMAGE_WIDTH,
     IMAGE_HEIGHT,
@@ -171,11 +171,7 @@ def generate_copywriting(client, product_title, uploaded_files):
 
 def generate_cover_image(client, product_title, note_title):
     """
-    按优先级尝试生成封面图：
-    1. Gemini 2.5 Flash Image (质量最佳，需付费)
-    2. OpenAI gpt-image (顶级质量，需付费)
-    3. SiliconFlow FLUX.1-dev (国内免费额度，质量接近 Gemini)
-    4. Pollinations gptimage-large (完全免费兜底)
+    按优先级尝试生成封面图，返回 (img_bytes, mime, provider_label)。
     """
     prompt_text = build_cover_prompt(product_title, note_title)
 
@@ -183,33 +179,39 @@ def generate_cover_image(client, product_title, note_title):
     if USE_GEMINI_IMAGE in ("auto", "yes") and GEMINI_API_KEY:
         img, mime, err = _try_gemini_image(client, prompt_text)
         if img:
-            return img, mime
+            return img, mime, "Gemini 2.5 Flash Image"
         if err and "quota" not in err.lower() and "exhausted" not in err.lower():
-            # 非配额原因的失败也值得展示
-            st.caption(f"Gemini 图像不可用: {err[:100]}")
+            st.caption(f"Gemini 不可用: {err[:120]}")
 
     # 优先级 2：OpenAI
     if OPENAI_API_KEY:
         img, mime, err = _try_openai_image(prompt_text)
         if img:
-            return img, mime
+            return img, mime, f"OpenAI {OPENAI_IMAGE_MODEL}"
         if err:
-            st.caption(f"OpenAI 图像不可用: {err[:100]}")
+            st.caption(f"OpenAI 不可用: {err[:120]}")
 
-    # 优先级 3：SiliconFlow 硅基流动
+    # 优先级 3：SiliconFlow 依次尝试多个模型
     if SILICONFLOW_API_KEY:
-        img, mime, err = _try_siliconflow_image(prompt_text)
-        if img:
-            return img, mime
-        if err:
-            st.caption(f"SiliconFlow 不可用: {err[:100]}")
+        for model_id in SILICONFLOW_MODELS:
+            img, mime, err = _try_siliconflow_image(prompt_text, model_id)
+            if img:
+                return img, mime, f"SiliconFlow {model_id.split('/')[-1]}"
+            if err:
+                # 若是 Model disabled / 付费拒绝，继续下一个；其他错直接退出
+                low = err.lower()
+                if "disabled" in low or "forbid" in low or "403" in low or "402" in low:
+                    st.caption(f"SiliconFlow [{model_id}] 不可用，尝试下一个...")
+                    continue
+                st.caption(f"SiliconFlow [{model_id}] 异常: {err[:120]}")
+                break
 
     # 优先级 4：Pollinations 免费兜底
     img, mime, err = _try_pollinations_image(prompt_text)
     if img:
-        return img, mime
+        return img, mime, f"Pollinations {POLLINATIONS_MODEL}"
     st.warning(f"所有图像服务均失败。最后错误: {err}")
-    return None, None
+    return None, None, None
 
 
 def build_cover_prompt(product_title, note_title):
@@ -284,17 +286,17 @@ def _try_openai_image(prompt_text):
         return None, None, str(e)
 
 
-def _try_siliconflow_image(prompt_text):
-    """调用 SiliconFlow 硅基流动 FLUX.1-dev 生成"""
+def _try_siliconflow_image(prompt_text, model_id):
+    """调用 SiliconFlow 指定模型生成图像"""
     import urllib.request
     import urllib.error
 
     body = json.dumps({
-        "model": SILICONFLOW_MODEL,
+        "model": model_id,
         "prompt": prompt_text,
         "image_size": f"{IMAGE_WIDTH}x{IMAGE_HEIGHT}",
-        "num_inference_steps": 28,
-        "guidance_scale": 3.5,
+        "num_inference_steps": 20,
+        "guidance_scale": 7.5,
     }).encode("utf-8")
 
     req = urllib.request.Request(
@@ -453,20 +455,13 @@ def main():
         cover_images = []
 
         if skip_cover:
-            cover_images = [(None, None)] * len(notes)
+            cover_images = [(None, None, None)] * len(notes)
         else:
             for i, note in enumerate(notes):
-                # 先尝试 Gemini
-                img_data, mime_type = generate_cover_image(
+                img_data, mime_type, provider = generate_cover_image(
                     client, product_title, note["title"]
                 )
-                # 如果失败，尝试 Imagen
-                if img_data is None:
-                    img_data, mime_type = generate_cover_with_imagen(
-                        client, product_title, note["title"]
-                    )
-
-                cover_images.append((img_data, mime_type))
+                cover_images.append((img_data, mime_type, provider))
                 progress = 50 + (i + 1) * 50 // len(notes)
                 progress_bar.progress(progress)
 
@@ -480,7 +475,7 @@ def main():
         st.markdown("---")
         st.subheader(f"📋 生成结果：{product_title}")
 
-        for i, (note, (img_data, mime_type)) in enumerate(zip(notes, cover_images)):
+        for i, (note, (img_data, mime_type, provider)) in enumerate(zip(notes, cover_images)):
             st.markdown(f"### 第 {i+1} 篇")
             # 封面图在左，文案在右
             c1, c2 = st.columns([1, 1.2])
@@ -489,7 +484,10 @@ def main():
                 if img_data:
                     img_bytes = img_data if isinstance(img_data, bytes) else base64.b64decode(img_data)
                     img = Image.open(io.BytesIO(img_bytes))
-                    st.image(img, caption=f"封面图 {i+1}", use_container_width=True)
+                    caption = f"封面图 {i+1}"
+                    if provider:
+                        caption += f" · {provider}"
+                    st.image(img, caption=caption, use_container_width=True)
                     # 下载按钮
                     ext = "png" if "png" in (mime_type or "") else "jpg"
                     st.download_button(
