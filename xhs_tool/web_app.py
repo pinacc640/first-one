@@ -173,17 +173,33 @@ def generate_cover_image(client, product_title, note_title):
             model=IMAGE_MODEL,
             contents=prompt,
             config=types.GenerateContentConfig(
-                response_modalities=["IMAGE"],
+                response_modalities=["IMAGE", "TEXT"],
+                image_config=types.ImageConfig(
+                    aspect_ratio="3:4",
+                ),
             ),
         )
 
-        for part in response.candidates[0].content.parts:
+        candidate = response.candidates[0]
+
+        # 检查是否被模型拒绝（内容策略、安全过滤等）
+        if candidate.finish_reason not in (
+            types.FinishReason.STOP,
+            types.FinishReason.MAX_TOKENS,
+        ):
+            st.warning(f"封面图被模型拒绝，原因: {candidate.finish_reason.name}")
+            return None, None
+
+        for part in candidate.content.parts:
             if part.inline_data and part.inline_data.mime_type.startswith("image/"):
                 return part.inline_data.data, part.inline_data.mime_type
 
+        # API 调用成功但没有返回图片数据（极少数情况）
+        st.warning("封面图 API 返回成功，但响应中无图片数据")
         return None, None
+
     except Exception as e:
-        st.warning(f"封面图生成失败: {e}")
+        st.warning(f"封面图生成异常: {e}")
         return None, None
 
 
