@@ -204,31 +204,7 @@ def generate_cover_image(client, product_title, note_title):
 
 
 def generate_cover_with_imagen(client, product_title, note_title):
-    """备用方案：使用 Imagen 模型生成封面图"""
-    prompt = (
-        f"Product photo for social media post. "
-        f"Product: {product_title}. "
-        f"Style: clean, minimal, lifestyle photography, warm tones, "
-        f"vertical composition 3:4 ratio. "
-        f"Title text overlay: {note_title}"
-    )
-
-    try:
-        response = client.models.generate_images(
-            model="imagen-3.0-generate-002",
-            prompt=prompt,
-            config=types.GenerateImagesConfig(
-                number_of_images=1,
-                aspect_ratio="3:4",
-            ),
-        )
-
-        if response.generated_images:
-            img = response.generated_images[0]
-            return img.image.image_bytes, "image/png"
-    except Exception as e:
-        st.warning(f"Imagen 备用方案失败: {e}")
-
+    """备用方案占位（imagen-3.0 只支持 Vertex AI，AI Studio key 不可用，直接返回空）"""
     return None, None
 
 

@@ -15,8 +15,10 @@ GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 TEXT_MODEL = "gemini-2.5-flash"
 
 # 封面图生成模型（支持原生图像输出）
-# gemini-3.1-flash-image-preview = Nano Banana 2，当前最新可用的图像生成模型
-IMAGE_MODEL = "gemini-3.1-flash-image-preview"
+# gemini-2.5-flash-image = Nano Banana，免费 tier 500张/天，AI Studio key 直接可用
+# 注意：gemini-3.1-flash-image-preview 免费配额为 0（需付费）
+#       imagen-3.0-generate-002 只支持 Vertex AI，AI Studio key 不可用
+IMAGE_MODEL = "gemini-2.5-flash-image"
 
 # ============================================================
 # 输出配置
