@@ -173,7 +173,7 @@ def generate_cover_image(client, product_title, note_title):
             model=IMAGE_MODEL,
             contents=prompt,
             config=types.GenerateContentConfig(
-                response_modalities=["IMAGE", "TEXT"],
+                response_modalities=["IMAGE"],
             ),
         )
 
@@ -330,30 +330,58 @@ def main():
         st.subheader(f"📋 生成结果：{product_title}")
 
         for i, (note, (img_data, mime_type)) in enumerate(zip(notes, cover_images)):
+            st.markdown(f"### 第 {i+1} 篇")
             # 封面图在左，文案在右
             c1, c2 = st.columns([1, 1.2])
 
             with c1:
                 if img_data:
-                    img = Image.open(io.BytesIO(img_data))
+                    img_bytes = img_data if isinstance(img_data, bytes) else base64.b64decode(img_data)
+                    img = Image.open(io.BytesIO(img_bytes))
                     st.image(img, caption=f"封面图 {i+1}", use_container_width=True)
+                    # 下载按钮
+                    ext = "png" if "png" in (mime_type or "") else "jpg"
+                    st.download_button(
+                        label=f"⬇️ 下载封面图 {i+1}",
+                        data=img_bytes,
+                        file_name=f"cover_{i+1}.{ext}",
+                        mime=mime_type or "image/png",
+                        use_container_width=True,
+                    )
                 else:
-                    st.markdown(f"""
-                    <div class="cover-placeholder">
-                        <span>封面图 {i+1}<br>(生成失败)</span>
-                    </div>
-                    """, unsafe_allow_html=True)
+                    st.info(f"封面图 {i+1} 生成失败")
 
             with c2:
-                st.markdown(f"""
-                <div class="note-card">
-                    <div class="note-title">📌 {note['title']}</div>
-                    <div class="note-body">{note['body']}</div>
-                    <div class="note-tags">
-                        {" ".join([f'<span class="tag">{tag}</span>' for tag in note['tags']])}
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
+                # 标题 —— 可复制
+                st.markdown("**📌 标题**（可直接复制）")
+                st.text_area(
+                    label=f"title_{i}",
+                    value=note["title"],
+                    height=68,
+                    key=f"title_{i}",
+                    label_visibility="collapsed",
+                )
+
+                # 正文 —— 可复制
+                st.markdown("**📝 正文**（可直接复制）")
+                st.text_area(
+                    label=f"body_{i}",
+                    value=note["body"],
+                    height=220,
+                    key=f"body_{i}",
+                    label_visibility="collapsed",
+                )
+
+                # 标签 —— 可复制，空格分隔方便粘贴
+                tags_str = " ".join(note["tags"])
+                st.markdown("**🏷️ 标签**（可直接复制）")
+                st.text_area(
+                    label=f"tags_{i}",
+                    value=tags_str,
+                    height=100,
+                    key=f"tags_{i}",
+                    label_visibility="collapsed",
+                )
 
             st.markdown("---")
 

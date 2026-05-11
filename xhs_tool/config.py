@@ -15,7 +15,8 @@ GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 TEXT_MODEL = "gemini-2.5-flash"
 
 # 封面图生成模型（支持原生图像输出）
-IMAGE_MODEL = "gemini-2.0-flash-exp"
+# gemini-3.1-flash-image-preview = Nano Banana 2，当前最新可用的图像生成模型
+IMAGE_MODEL = "gemini-3.1-flash-image-preview"
 
 # ============================================================
 # 输出配置
