@@ -162,49 +162,40 @@ def generate_copywriting(client, product_title, uploaded_files):
 
 
 def generate_cover_image(client, product_title, note_title):
-    """使用 Gemini 生成封面图"""
-    prompt = COVER_IMAGE_PROMPT.format(
-        product_title=product_title,
-        note_title=note_title,
+    """使用 Pollinations.ai 免费 API 生成封面图（无需 key，无配额限制）"""
+    import urllib.parse
+    import urllib.request
+
+    # 构建封面图描述 prompt（英文效果更好）
+    prompt_text = (
+        f"Small Red Book (Xiaohongshu) cover photo for product: {product_title}. "
+        f"Post title: {note_title}. "
+        f"Style: clean minimal lifestyle product photography, warm natural tones, "
+        f"soft background, high quality, vertical composition, social media ready."
+    )
+
+    encoded_prompt = urllib.parse.quote(prompt_text)
+    # 使用 flux 模型（免费，无需 key），3:4 竖版比例 810x1080
+    url = (
+        f"https://image.pollinations.ai/prompt/{encoded_prompt}"
+        f"?model=flux&width=810&height=1080&enhance=true&nologo=true"
     )
 
     try:
-        response = client.models.generate_content(
-            model=IMAGE_MODEL,
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                response_modalities=["IMAGE", "TEXT"],
-                image_config=types.ImageConfig(
-                    aspect_ratio="3:4",
-                ),
-            ),
-        )
-
-        candidate = response.candidates[0]
-
-        # 检查是否被模型拒绝（内容策略、安全过滤等）
-        if candidate.finish_reason not in (
-            types.FinishReason.STOP,
-            types.FinishReason.MAX_TOKENS,
-        ):
-            st.warning(f"封面图被模型拒绝，原因: {candidate.finish_reason.name}")
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=60) as resp:
+            img_bytes = resp.read()
+        if len(img_bytes) < 1000:
+            st.warning(f"封面图 #{1} 返回数据异常（可能是错误响应）")
             return None, None
-
-        for part in candidate.content.parts:
-            if part.inline_data and part.inline_data.mime_type.startswith("image/"):
-                return part.inline_data.data, part.inline_data.mime_type
-
-        # API 调用成功但没有返回图片数据（极少数情况）
-        st.warning("封面图 API 返回成功，但响应中无图片数据")
-        return None, None
-
+        return img_bytes, "image/jpeg"
     except Exception as e:
-        st.warning(f"封面图生成异常: {e}")
+        st.warning(f"封面图生成失败: {e}")
         return None, None
 
 
 def generate_cover_with_imagen(client, product_title, note_title):
-    """备用方案占位（imagen-3.0 只支持 Vertex AI，AI Studio key 不可用，直接返回空）"""
+    """占位，已不使用"""
     return None, None
 
 
