@@ -8,13 +8,26 @@
 输入：3张产品截图 + 产品标题
         ↓
   [Gemini 2.5 Flash] → 分析截图，生成3篇不同角度的文案
-  [Gemini 2.0 Flash] → 根据文案标题，生成3张封面图
+  [图像服务链]        → 根据文案标题，生成3张封面图
         ↓
-输出：output/ 目录下的封面图 + 文案文件
+输出：3张可下载封面图 + 3份可复制文案（标题/正文/标签）
 ```
 
-- **文案生成**：使用 Gemini 2.5 Flash（多模态），能看懂你的产品截图并写出接地气的种草文案
-- **封面图生成**：使用 Gemini 2.0 Flash Exp（原生图像生成），如果失败会自动切换到 Imagen 备用方案
+- **文案生成**：使用 Gemini 2.5 Flash（多模态），能看懂产品截图并写出接地气的种草文案
+- **封面图生成**：多 provider 自动回退链（详见下方"封面图方案选择"）
+
+## 封面图方案选择
+
+Gemini 和 GPT-Image 官方 API 的免费 tier 配额均为 0，高质量图需付费。工具实现了**按优先级自动回退**：
+
+| 优先级 | 服务 | 质量 | 花费 | 配置方式 |
+|------|------|------|------|---------|
+| 1 | Gemini 2.5 Flash Image | ★★★★★ | ~$0.04/张 | 需在 AI Studio 升级到 Tier 1（绑卡） |
+| 2 | OpenAI gpt-image-1 | ★★★★★ | ~$0.04/张 | `export OPENAI_API_KEY=sk-...` |
+| 3 | SiliconFlow FLUX.1-dev | ★★★★☆ | **免费（送额度）** | `export SILICONFLOW_API_KEY=sk-...` |
+| 4 | Pollinations gptimage-large | ★★★★ | **完全免费** | 无需任何配置 |
+
+**推荐方案**：注册 [硅基流动 SiliconFlow](https://cloud.siliconflow.cn/account/ak)，新账号送 ¥14 额度（约 700 张 FLUX.1 图），质量接近 Gemini，完全免费。
 
 ## 快速开始
 

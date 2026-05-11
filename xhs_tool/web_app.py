@@ -26,8 +26,16 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from config import (
     GEMINI_API_KEY,
     TEXT_MODEL,
-    IMAGE_MODEL,
     NUM_NOTES,
+    GEMINI_IMAGE_MODEL,
+    USE_GEMINI_IMAGE,
+    OPENAI_API_KEY,
+    OPENAI_IMAGE_MODEL,
+    SILICONFLOW_API_KEY,
+    SILICONFLOW_MODEL,
+    POLLINATIONS_MODEL,
+    IMAGE_WIDTH,
+    IMAGE_HEIGHT,
 )
 from prompts import (
     COPYWRITING_SYSTEM_PROMPT,
@@ -162,40 +170,177 @@ def generate_copywriting(client, product_title, uploaded_files):
 
 
 def generate_cover_image(client, product_title, note_title):
-    """使用 Pollinations.ai 免费 API 生成封面图（无需 key，无配额限制）"""
+    """
+    按优先级尝试生成封面图：
+    1. Gemini 2.5 Flash Image (质量最佳，需付费)
+    2. OpenAI gpt-image (顶级质量，需付费)
+    3. SiliconFlow FLUX.1-dev (国内免费额度，质量接近 Gemini)
+    4. Pollinations gptimage-large (完全免费兜底)
+    """
+    prompt_text = build_cover_prompt(product_title, note_title)
+
+    # 优先级 1：Gemini 官方
+    if USE_GEMINI_IMAGE in ("auto", "yes") and GEMINI_API_KEY:
+        img, mime, err = _try_gemini_image(client, prompt_text)
+        if img:
+            return img, mime
+        if err and "quota" not in err.lower() and "exhausted" not in err.lower():
+            # 非配额原因的失败也值得展示
+            st.caption(f"Gemini 图像不可用: {err[:100]}")
+
+    # 优先级 2：OpenAI
+    if OPENAI_API_KEY:
+        img, mime, err = _try_openai_image(prompt_text)
+        if img:
+            return img, mime
+        if err:
+            st.caption(f"OpenAI 图像不可用: {err[:100]}")
+
+    # 优先级 3：SiliconFlow 硅基流动
+    if SILICONFLOW_API_KEY:
+        img, mime, err = _try_siliconflow_image(prompt_text)
+        if img:
+            return img, mime
+        if err:
+            st.caption(f"SiliconFlow 不可用: {err[:100]}")
+
+    # 优先级 4：Pollinations 免费兜底
+    img, mime, err = _try_pollinations_image(prompt_text)
+    if img:
+        return img, mime
+    st.warning(f"所有图像服务均失败。最后错误: {err}")
+    return None, None
+
+
+def build_cover_prompt(product_title, note_title):
+    """构建封面图提示词（英文效果更好）"""
+    return (
+        f"Premium Xiaohongshu (Little Red Book) social media cover photo. "
+        f"Product: {product_title}. Theme: {note_title}. "
+        f"Style: clean minimal lifestyle product photography, warm natural lighting, "
+        f"soft pastel background, high-end aesthetic, shallow depth of field, "
+        f"Instagram-quality, vertical 3:4 composition, editorial look, no text overlay."
+    )
+
+
+def _try_gemini_image(client, prompt_text):
+    """调用 Gemini 原生图像生成"""
+    try:
+        response = client.models.generate_content(
+            model=GEMINI_IMAGE_MODEL,
+            contents=prompt_text,
+            config=types.GenerateContentConfig(
+                response_modalities=["IMAGE", "TEXT"],
+                image_config=types.ImageConfig(aspect_ratio="3:4"),
+            ),
+        )
+        candidate = response.candidates[0]
+        if candidate.finish_reason not in (
+            types.FinishReason.STOP,
+            types.FinishReason.MAX_TOKENS,
+        ):
+            return None, None, f"被模型拒绝: {candidate.finish_reason.name}"
+        for part in candidate.content.parts:
+            if part.inline_data and part.inline_data.mime_type.startswith("image/"):
+                return part.inline_data.data, part.inline_data.mime_type, None
+        return None, None, "响应中无图片数据"
+    except Exception as e:
+        return None, None, str(e)
+
+
+def _try_openai_image(prompt_text):
+    """调用 OpenAI gpt-image 生成"""
+    import urllib.request
+    import urllib.error
+
+    body = json.dumps({
+        "model": OPENAI_IMAGE_MODEL,
+        "prompt": prompt_text,
+        "size": "1024x1536",  # 3:2 近似 3:4
+        "n": 1,
+    }).encode("utf-8")
+
+    req = urllib.request.Request(
+        "https://api.openai.com/v1/images/generations",
+        data=body,
+        headers={
+            "Authorization": f"Bearer {OPENAI_API_KEY}",
+            "Content-Type": "application/json",
+        },
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=90) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        img_item = data["data"][0]
+        if "b64_json" in img_item:
+            return base64.b64decode(img_item["b64_json"]), "image/png", None
+        if "url" in img_item:
+            with urllib.request.urlopen(img_item["url"], timeout=30) as r2:
+                return r2.read(), "image/png", None
+        return None, None, "响应格式异常"
+    except urllib.error.HTTPError as e:
+        return None, None, f"HTTP {e.code}: {e.read().decode('utf-8', errors='ignore')[:200]}"
+    except Exception as e:
+        return None, None, str(e)
+
+
+def _try_siliconflow_image(prompt_text):
+    """调用 SiliconFlow 硅基流动 FLUX.1-dev 生成"""
+    import urllib.request
+    import urllib.error
+
+    body = json.dumps({
+        "model": SILICONFLOW_MODEL,
+        "prompt": prompt_text,
+        "image_size": f"{IMAGE_WIDTH}x{IMAGE_HEIGHT}",
+        "num_inference_steps": 28,
+        "guidance_scale": 3.5,
+    }).encode("utf-8")
+
+    req = urllib.request.Request(
+        "https://api.siliconflow.cn/v1/images/generations",
+        data=body,
+        headers={
+            "Authorization": f"Bearer {SILICONFLOW_API_KEY}",
+            "Content-Type": "application/json",
+        },
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=90) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        img_url = data["images"][0]["url"]
+        with urllib.request.urlopen(img_url, timeout=30) as r2:
+            return r2.read(), "image/png", None
+    except urllib.error.HTTPError as e:
+        return None, None, f"HTTP {e.code}: {e.read().decode('utf-8', errors='ignore')[:200]}"
+    except Exception as e:
+        return None, None, str(e)
+
+
+def _try_pollinations_image(prompt_text):
+    """Pollinations 免费兜底（无需 key）"""
     import urllib.parse
     import urllib.request
 
-    # 构建封面图描述 prompt（英文效果更好）
-    prompt_text = (
-        f"Small Red Book (Xiaohongshu) cover photo for product: {product_title}. "
-        f"Post title: {note_title}. "
-        f"Style: clean minimal lifestyle product photography, warm natural tones, "
-        f"soft background, high quality, vertical composition, social media ready."
-    )
-
-    encoded_prompt = urllib.parse.quote(prompt_text)
-    # 使用 flux 模型（免费，无需 key），3:4 竖版比例 810x1080
+    encoded = urllib.parse.quote(prompt_text)
     url = (
-        f"https://image.pollinations.ai/prompt/{encoded_prompt}"
-        f"?model=flux&width=810&height=1080&enhance=true&nologo=true"
+        f"https://image.pollinations.ai/prompt/{encoded}"
+        f"?model={POLLINATIONS_MODEL}&width={IMAGE_WIDTH}&height={IMAGE_HEIGHT}"
+        f"&enhance=true&nologo=true"
     )
-
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-        with urllib.request.urlopen(req, timeout=60) as resp:
+        with urllib.request.urlopen(req, timeout=120) as resp:
             img_bytes = resp.read()
         if len(img_bytes) < 1000:
-            st.warning(f"封面图 #{1} 返回数据异常（可能是错误响应）")
-            return None, None
-        return img_bytes, "image/jpeg"
+            return None, None, "返回数据过小"
+        return img_bytes, "image/jpeg", None
     except Exception as e:
-        st.warning(f"封面图生成失败: {e}")
-        return None, None
+        return None, None, str(e)
 
 
 def generate_cover_with_imagen(client, product_title, note_title):
-    """占位，已不使用"""
+    """占位，已不使用（逻辑并入 generate_cover_image 的回退链）"""
     return None, None
 
 
@@ -211,6 +356,29 @@ def main():
         st.markdown("---")
         num_notes = st.slider("生成数量", 1, 5, 3)
         skip_cover = st.checkbox("跳过封面图生成", value=False)
+
+        st.markdown("---")
+        st.markdown("**🎨 封面图服务状态**")
+        if GEMINI_API_KEY and USE_GEMINI_IMAGE in ("auto", "yes"):
+            st.markdown("- ✅ Gemini（优先，需付费）")
+        else:
+            st.markdown("- ⚪ Gemini（未启用）")
+        if OPENAI_API_KEY:
+            st.markdown("- ✅ OpenAI gpt-image")
+        else:
+            st.markdown("- ⚪ OpenAI（未配置 key）")
+        if SILICONFLOW_API_KEY:
+            st.markdown("- ✅ SiliconFlow（推荐，送免费额度）")
+        else:
+            st.markdown("- ⚪ SiliconFlow（未配置 key）")
+        st.markdown("- ✅ Pollinations（免费兜底）")
+        with st.expander("💡 如何获取更好效果"):
+            st.markdown(
+                "**推荐配置 SiliconFlow**（免费质量接近 Gemini）:\n"
+                "1. 注册 [siliconflow.cn](https://cloud.siliconflow.cn/account/ak)\n"
+                "2. 新账号送 ¥14 额度\n"
+                "3. `export SILICONFLOW_API_KEY=sk-...`"
+            )
 
         st.markdown("---")
         st.markdown("**使用说明：**")
