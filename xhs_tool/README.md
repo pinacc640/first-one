@@ -39,7 +39,13 @@ playwright install chromium
 
 ### 3. 配置 key
 
-直接编辑 `config.py`：
+复制模板文件，然后填入你的 key：
+
+```bash
+cp config_local.py.example config_local.py
+```
+
+打开 `config_local.py`，把两个占位字符串换成你的两个 Gemini API key：
 
 ```python
 GEMINI_API_KEYS = [
@@ -48,10 +54,13 @@ GEMINI_API_KEYS = [
 ]
 ```
 
-或者用环境变量（只配置第一个时 fallback 用 hard-coded 第二个）：
+> `config_local.py` 已经在 `.gitignore` 中，**不会被推到 GitHub**。永远不要把 key 写在 `config.py` 里。
+
+如果你不想用文件，也可以走环境变量：
 
 ```bash
 export GEMINI_API_KEY="key1"
+export GEMINI_API_KEY_2="key2"
 ```
 
 ### 4. 启动

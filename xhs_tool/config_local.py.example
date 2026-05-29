@@ -1,0 +1,16 @@
+# config_local.py.example
+#
+# 本地 API key 配置文件模板。
+#
+# 使用方法：
+#   1. 把本文件复制为 config_local.py（去掉 .example 后缀）
+#   2. 填入你的 Gemini API key
+#   3. 这个文件已经在 .gitignore 中，不会被推送到 GitHub
+#
+# 申请 Gemini API key：https://aistudio.google.com/apikey
+# 建议用两个不同的 Google 账户各申请一个 key，免费配额翻倍。
+
+GEMINI_API_KEYS = [
+    "在这里填入你的第一个 Gemini API key",
+    "在这里填入你的第二个 Gemini API key",
+]

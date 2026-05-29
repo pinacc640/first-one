@@ -1,60 +1,61 @@
 """
-config.py - 小红书笔记批量制作工具配置
+config.py - 小红书封面卡片生成工具配置
+
+API key 配置方式（任选其一）：
+  1) 推荐：复制 config_local.py.example 为 config_local.py 并填入你的 key
+     （config_local.py 已在 .gitignore 中，不会被提交到仓库）
+  2) 环境变量：GEMINI_API_KEY、GEMINI_API_KEY_2
 """
 
 import os
 
 # ============================================================
-# 文案生成（Gemini，免费配额够用）
+# Gemini API key（双邮箱免费配额轮换）
 # 获取地址：https://aistudio.google.com/apikey
 # ============================================================
-GEMINI_API_KEYS = [
-    os.environ.get("GEMINI_API_KEY", "AIzaSyCNcs-Ug-Riy982wnAg2iqLk9Z1hGsVwo8"),
-    "AIzaSyDK2kbMePkV95dwur17PED5uu5kDppJeUY",
-]
+
+# 优先从 config_local.py 读取（本地、不入 git）
+try:
+    from config_local import GEMINI_API_KEYS  # type: ignore
+except ImportError:
+    # 回退到环境变量
+    _env_keys = [
+        os.environ.get("GEMINI_API_KEY"),
+        os.environ.get("GEMINI_API_KEY_2"),
+    ]
+    GEMINI_API_KEYS = [k for k in _env_keys if k]
+
+# 文案生成用的 Gemini 模型
 TEXT_MODEL = "gemini-2.5-flash"
 
 
 # ============================================================
-# 封面图生成 —— 按优先级自动回退
+# 封面图生成 —— 多 provider 自动回退（旧版兼容字段）
 # ------------------------------------------------------------
-# 现状（2026/05）：Gemini 和 GPT-Image 都没有公开免费 tier，
-# 想要高质量图必须付费或用第三方聚合平台。工具会按下面的
-# 优先级依次尝试，哪个配好了 key 就用哪个，都没有就用
-# Pollinations 免费兜底。
+# 当前版本主要使用 Playwright 本地渲染 HTML 模板生成封面卡片，
+# 不再依赖付费图像 API。下面的字段保留是为了兼容老的 web_app.py
+# 调用路径，未来会清理。
 # ============================================================
 
-# --- 优先级 1：Gemini 官方（质量最好，需要开通计费）---
-# 开通方式：https://aistudio.google.com/apikey -> 升级到 Tier 1（绑卡）
-# 定价：~$0.039 / 张
+# --- Gemini 官方图像模型（需绑卡升级到 Tier 1）---
 GEMINI_IMAGE_MODEL = "gemini-2.5-flash-image"
 USE_GEMINI_IMAGE = os.environ.get("USE_GEMINI_IMAGE", "auto")  # auto/yes/no
 
-
-# --- 优先级 2：OpenAI gpt-image-1 / gpt-image-2（质量顶级，需付费）---
-# 获取地址：https://platform.openai.com/api-keys
-# 定价：~$0.04 / 张
+# --- OpenAI gpt-image-1 / gpt-image-2（需付费）---
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
-OPENAI_IMAGE_MODEL = "gpt-image-1"  # 或 "gpt-image-2"（如已开放）
+OPENAI_IMAGE_MODEL = "gpt-image-1"
 
-
-# --- 优先级 3：SiliconFlow 硅基流动（国内推荐）---
-# 获取地址：https://cloud.siliconflow.cn/account/ak
-# 注意：平台会不时调整哪些图像模型需要付费/实名认证。
-# 下面按质量优先级列了一组候选模型，运行时会依次尝试，
-# 直到找到你账号能用的那个。遇到 "Model disabled" 会自动跳到下一个。
+# --- SiliconFlow 硅基流动（国内推荐）---
 SILICONFLOW_API_KEY = os.environ.get("SILICONFLOW_API_KEY", "")
 SILICONFLOW_MODELS = [
-    "Kwai-Kolors/Kolors",                      # 可图，中文效果好，通常免费可用
-    "black-forest-labs/FLUX.1-schnell",        # FLUX 快速版，质量不错
-    "stabilityai/stable-diffusion-3-5-large",  # SD 3.5 Large
-    "black-forest-labs/FLUX.1-dev",            # FLUX dev 完整版（可能需付费）
-    "stabilityai/stable-diffusion-xl-base-1.0",# SDXL 兜底
+    "Kwai-Kolors/Kolors",
+    "black-forest-labs/FLUX.1-schnell",
+    "stabilityai/stable-diffusion-3-5-large",
+    "black-forest-labs/FLUX.1-dev",
+    "stabilityai/stable-diffusion-xl-base-1.0",
 ]
 
-
-# --- 优先级 4：Pollinations（完全免费兜底，无需 key）---
-# gptimage-large 质量不错，flux 一般
+# --- Pollinations（完全免费兜底，无需 key）---
 POLLINATIONS_MODEL = "gptimage-large"
 
 
@@ -64,7 +65,7 @@ POLLINATIONS_MODEL = "gptimage-large"
 
 NUM_NOTES = 3
 
-# 封面图尺寸（小红书推荐 3:4 竖版）
+# 封面卡片尺寸（小红书推荐 3:4 竖版）
 IMAGE_WIDTH = 1080
 IMAGE_HEIGHT = 1440
 
