@@ -56,62 +56,261 @@ st.set_page_config(
 
 # ============ 样式 ============
 st.markdown("""
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-    .stButton > button {
-        width: 100%;
-        background: linear-gradient(90deg, #FF2442 0%, #FF6B6B 100%);
-        color: white;
-        font-size: 18px;
-        font-weight: bold;
-        padding: 15px;
-        border: none;
-        border-radius: 10px;
-    }
-    .stButton > button:hover {
-        background: linear-gradient(90deg, #E61E32 0%, #FF5252 100%);
-    }
-    .note-card {
-        background: #fff;
-        border-radius: 16px;
-        padding: 24px;
-        margin: 16px 0;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-    }
-    .note-title {
-        font-size: 20px;
-        font-weight: bold;
-        color: #333;
-        margin-bottom: 16px;
-    }
-    .note-body {
-        font-size: 15px;
-        color: #555;
-        line-height: 1.8;
-        white-space: pre-wrap;
-    }
-    .note-tags {
-        margin-top: 16px;
-        padding-top: 16px;
-        border-top: 1px solid #eee;
-    }
-    .tag {
-        display: inline-block;
-        background: #FFF0F0;
-        color: #FF2442;
-        padding: 4px 12px;
-        border-radius: 20px;
-        margin: 4px;
-        font-size: 13px;
-    }
-    .cover-placeholder {
-        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 400px;
-        color: #999;
-    }
+
+/* ============ 隐藏 Streamlit 默认元素 ============ */
+#MainMenu, footer, header[data-testid="stHeader"] { display: none !important; }
+.stDeployButton { display: none !important; }
+[data-testid="stToolbar"] { display: none !important; }
+
+/* ============ 全局字体 + 颜色 ============ */
+html, body, [class*="st-"], [class*="css-"] {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI Variable', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei UI', 'Microsoft YaHei', 'Noto Sans SC', system-ui, sans-serif !important;
+}
+.stApp {
+    background:
+        radial-gradient(ellipse 80% 60% at 20% 0%, rgba(168, 85, 247, 0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 70% 50% at 80% 100%, rgba(6, 182, 212, 0.10) 0%, transparent 60%),
+        linear-gradient(135deg, #0a0613 0%, #0f0a1f 25%, #0d1023 50%, #0a0a18 100%) !important;
+    background-attachment: fixed;
+}
+
+/* ============ Hero 区 ============ */
+.brand-hero {
+    text-align: center;
+    padding: 2.5rem 0 2rem;
+    position: relative;
+}
+.brand-hero .eyebrow {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, #c084fc 0%, #67e8f9 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    margin-bottom: 0.5rem;
+}
+.brand-hero h1 {
+    font-size: clamp(1.75rem, 3.2vw, 2.625rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    margin: 0 0 0.75rem;
+    color: #f5f5f7;
+}
+.brand-hero h1 .accent {
+    background: linear-gradient(135deg, #c084fc 0%, #67e8f9 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+}
+.brand-hero .lead {
+    font-size: 1rem;
+    color: rgba(245, 245, 247, 0.65);
+    max-width: 580px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+.brand-hero .stack {
+    margin-top: 1.5rem;
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+.brand-hero .badge {
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    color: rgba(192, 132, 252, 0.95);
+    background: rgba(168, 85, 247, 0.1);
+    border: 1px solid rgba(168, 85, 247, 0.22);
+    padding: 4px 10px;
+    border-radius: 9999px;
+}
+
+/* ============ 玻璃卡片（用 div 包内容时） ============ */
+.glass-card {
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.32);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.glass-card:hover {
+    border-color: rgba(168, 85, 247, 0.35);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(168, 85, 247, 0.35);
+}
+
+/* ============ 主按钮 - 紫青渐变 ============ */
+.stButton > button {
+    width: 100%;
+    background: linear-gradient(135deg, #a855f7 0%, #06b6d4 100%) !important;
+    color: white !important;
+    font-size: 0.9375rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.02em;
+    padding: 14px 28px !important;
+    border: none !important;
+    border-radius: 9999px !important;
+    box-shadow: 0 4px 24px rgba(168, 85, 247, 0.35) !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+}
+.stButton > button:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 32px rgba(168, 85, 247, 0.5) !important;
+}
+.stButton > button:active {
+    transform: translateY(0) !important;
+}
+
+/* 下载按钮（更次要、玻璃风） */
+[data-testid="stDownloadButton"] > button {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    color: rgba(245, 245, 247, 0.95) !important;
+    font-weight: 500 !important;
+    font-size: 0.8125rem !important;
+    padding: 8px 14px !important;
+    border-radius: 9999px !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: none !important;
+}
+[data-testid="stDownloadButton"] > button:hover {
+    border-color: rgba(168, 85, 247, 0.5) !important;
+    background: rgba(168, 85, 247, 0.12) !important;
+    transform: translateY(-1px) !important;
+}
+
+/* ============ 输入框 ============ */
+.stTextInput > div > div > input,
+.stTextArea > div > div > textarea {
+    background: rgba(255, 255, 255, 0.04) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    color: #f5f5f7 !important;
+    border-radius: 10px !important;
+    font-family: inherit !important;
+}
+.stTextInput > div > div > input:focus,
+.stTextArea > div > div > textarea:focus {
+    border-color: rgba(168, 85, 247, 0.55) !important;
+    box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.15) !important;
+}
+
+/* ============ 文件上传器 ============ */
+[data-testid="stFileUploader"] > section {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1.5px dashed rgba(168, 85, 247, 0.4) !important;
+    border-radius: 14px !important;
+    padding: 1.75rem !important;
+    transition: all 0.3s ease;
+}
+[data-testid="stFileUploader"] > section:hover {
+    border-color: rgba(168, 85, 247, 0.7) !important;
+    background: rgba(168, 85, 247, 0.06) !important;
+}
+[data-testid="stFileUploader"] section button {
+    background: linear-gradient(135deg, #a855f7 0%, #06b6d4 100%) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 9999px !important;
+    font-weight: 600 !important;
+}
+
+/* ============ 进度条 ============ */
+.stProgress > div > div > div > div {
+    background: linear-gradient(90deg, #a855f7 0%, #06b6d4 100%) !important;
+}
+
+/* ============ Slider ============ */
+[data-testid="stSlider"] [role="slider"] {
+    background: linear-gradient(135deg, #a855f7 0%, #06b6d4 100%) !important;
+    box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.18) !important;
+}
+
+/* ============ 侧边栏 ============ */
+section[data-testid="stSidebar"] {
+    background: rgba(8, 8, 12, 0.85) !important;
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-right: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+section[data-testid="stSidebar"] h2 {
+    background: linear-gradient(135deg, #c084fc 0%, #67e8f9 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    font-weight: 700;
+}
+
+/* ============ Markdown 标题 ============ */
+.stMarkdown h2, .stMarkdown h3 {
+    color: #f5f5f7 !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.02em !important;
+}
+
+/* ============ Alert / Info / Success / Error ============ */
+[data-testid="stAlert"] {
+    background: rgba(255, 255, 255, 0.04) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 12px !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Caption 文字 */
+[data-testid="stCaptionContainer"], .stCaption {
+    color: rgba(245, 245, 247, 0.55) !important;
+    font-size: 0.8125rem !important;
+}
+
+/* 图片圆角 */
+.stImage > img {
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* 章节分隔线 */
+hr {
+    border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* 笔记卡片包装 */
+.note-section {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 18px;
+    padding: 1.5rem 1.75rem;
+    margin: 1.5rem 0;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28);
+}
+.note-section h3 {
+    margin-top: 0 !important;
+    background: linear-gradient(135deg, #c084fc 0%, #67e8f9 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    font-size: 1.125rem !important;
+    letter-spacing: 0.04em !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -373,33 +572,70 @@ def generate_cover_with_imagen(client, product_title, note_title):
 
 # ============ 主界面 ============
 def main():
-    # 标题
-    st.title("📕 小红书笔记生成 · Guizang 杂志封面")
-    st.markdown("上传产品截图，自动生成种草文案 + **杂志级封面卡片**")
+    # 标题（品牌 Hero）
+    st.markdown("""
+    <div class="brand-hero">
+      <div class="eyebrow">Xiaohongshu Cover Generator · v2</div>
+      <h1>3 张截图 → <span class="accent">5 种瑞士风封面卡片</span></h1>
+      <p class="lead">上传产品截图、填写标题，AI 自动生成 3 篇接地气文案 + 5 种杂志风格的封面卡片。本地运行，双邮箱免费 API 轮换。</p>
+      <div class="stack">
+        <span class="badge">Gemini 2.5 Flash</span>
+        <span class="badge">Playwright</span>
+        <span class="badge">Streamlit</span>
+        <span class="badge">5 Layouts</span>
+        <span class="badge">Open Source</span>
+      </div>
+    </div>
+    """, unsafe_allow_html=True)
 
     # 侧边栏配置
     with st.sidebar:
-        st.header("⚙️ 配置")
-        st.markdown("---")
+        st.markdown("""
+        <div style="padding: 0.5rem 0 1rem;">
+          <div style="font-size: 0.7rem; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase;
+                      background: linear-gradient(135deg, #c084fc 0%, #67e8f9 100%);
+                      -webkit-background-clip: text; background-clip: text;
+                      -webkit-text-fill-color: transparent;">Settings</div>
+          <h2 style="margin: 0.25rem 0 0; font-size: 1.25rem; font-weight: 700; letter-spacing: -0.02em; color: #f5f5f7;">配置面板</h2>
+        </div>
+        """, unsafe_allow_html=True)
+
         num_notes = st.slider("生成数量", 1, 5, 3)
         skip_cover = st.checkbox("跳过封面图生成", value=False)
 
         st.markdown("---")
-        st.markdown("**🎨 输出内容（每篇笔记）**")
-        st.markdown("- 🟦 **1 张 Swiss 杂志封面**")
-        st.markdown("  - 2~4 张截图网格排版，各配不同背景纹理")
-        st.markdown("  - 可选 Pexels 图库背景图")
-        st.markdown("- 📄 **5 张详情页图片**（布局轮换）")
-        st.markdown("- 大字标题 + 满版构图")
+        st.markdown("""
+        <div style="font-size: 0.75rem; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(245,245,247,0.55); margin-bottom: 0.5rem;">每篇笔记输出</div>
+        """, unsafe_allow_html=True)
+        st.markdown("- **1 张主封面**（A / E / B 三种风格轮换）")
+        st.markdown("- **5 张详情页**（split / hero 布局）")
+        st.markdown("- **完整文案**（标题 + 正文 + 标签）")
 
         st.markdown("---")
-        st.markdown("**使用说明：**")
-        st.markdown("1. 上传产品截图（至少1张）")
+        st.markdown("""
+        <div style="font-size: 0.75rem; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(245,245,247,0.55); margin-bottom: 0.5rem;">使用步骤</div>
+        """, unsafe_allow_html=True)
+        st.markdown("1. 上传产品截图（≥1 张）")
         st.markdown("2. 填写产品标题")
-        st.markdown("3. 点击开始生成按钮")
+        st.markdown("3. 点「开始生成」按钮")
+
+        st.markdown("---")
+        st.markdown("""
+        <div style="font-size: 0.6875rem; color: rgba(245,245,247,0.4); line-height: 1.6;">
+          运行模式：本地<br>
+          模型：Gemini 2.5 Flash<br>
+          渲染：Playwright + Chromium
+        </div>
+        """, unsafe_allow_html=True)
 
     # 主输入区域
-    st.subheader("📤 上传产品截图")
+    st.markdown("""
+    <div style="margin: 1rem 0 0.5rem;">
+      <div style="font-size: 0.7rem; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(192,132,252,0.95);">Step 1</div>
+      <h2 style="margin: 0.25rem 0 0.5rem; font-size: 1.25rem; font-weight: 700; letter-spacing: -0.02em;">上传产品截图</h2>
+      <p style="margin: 0; color: rgba(245,245,247,0.55); font-size: 0.875rem;">支持 PNG / JPG / WebP / GIF，建议 3 张以上</p>
+    </div>
+    """, unsafe_allow_html=True)
     uploaded_files = st.file_uploader(
         "支持 PNG、JPG、JPEG、WebP、GIF",
         type=["png", "jpg", "jpeg", "webp", "gif"],
@@ -409,7 +645,7 @@ def main():
 
     # 预览上传的图片
     if uploaded_files:
-        st.success(f"✅ 已选择 {len(uploaded_files)} 张图片")
+        st.success(f"已选择 {len(uploaded_files)} 张图片")
         cols = st.columns(min(len(uploaded_files), 3))
         for i, f in enumerate(uploaded_files[:3]):
             with cols[i % 3]:
@@ -417,7 +653,12 @@ def main():
         if len(uploaded_files) > 3:
             st.info(f"还有 {len(uploaded_files) - 3} 张图片...")
 
-    st.subheader("📦 产品标题")
+    st.markdown("""
+    <div style="margin: 1.5rem 0 0.5rem;">
+      <div style="font-size: 0.7rem; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(192,132,252,0.95);">Step 2</div>
+      <h2 style="margin: 0.25rem 0 0.5rem; font-size: 1.25rem; font-weight: 700; letter-spacing: -0.02em;">产品标题</h2>
+    </div>
+    """, unsafe_allow_html=True)
     col1, col2 = st.columns([3, 1])
     with col1:
         product_title = st.text_input(
@@ -426,7 +667,7 @@ def main():
             label_visibility="collapsed"
         )
     with col2:
-        generate_btn = st.button("🚀 开始生成")
+        generate_btn = st.button("Generate →")
 
     # 生成逻辑
     if generate_btn:
@@ -563,10 +804,19 @@ def main():
 
         # ============ 展示结果 ============
         st.markdown("---")
-        st.subheader(f"📋 生成结果：{product_title}")
+        st.markdown(f"""
+        <div style="margin: 1.5rem 0 0.5rem;">
+          <div style="font-size: 0.7rem; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase;
+                      background: linear-gradient(135deg, #c084fc 0%, #67e8f9 100%);
+                      -webkit-background-clip: text; background-clip: text;
+                      -webkit-text-fill-color: transparent;">Output</div>
+          <h2 style="margin: 0.25rem 0 0; font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em;">{product_title}</h2>
+          <p style="margin: 0.25rem 0 0; color: rgba(245,245,247,0.55); font-size: 0.875rem;">3 篇文案 · 3 张主封面 · 15 张详情页</p>
+        </div>
+        """, unsafe_allow_html=True)
 
         for i, note in enumerate(notes):
-            st.markdown(f"### 第 {i+1} 篇")
+            st.markdown(f'<div class="note-section"><h3>NOTE 0{i+1} · {cover_layouts[i % len(cover_layouts)]}</h3>', unsafe_allow_html=True)
             note_results = [r for r in all_results if r[0] == i]
 
             # 封面图 + 文案在同一行
@@ -636,6 +886,7 @@ def main():
                         else:
                             st.info(f"详情 {j+1} 失败")
 
+            st.markdown("</div>", unsafe_allow_html=True)
             st.markdown("---")
 
 
