@@ -48,10 +48,11 @@ img{display:block}
 /* LAYOUT B: Full-bleed Hero — 全屏大图 + 浮层标题                   */
 /* ================================================================ */
 .layout-b{height:100%;position:relative;z-index:1;overflow:hidden}
-.layout-b .bhero{position:absolute;inset:0}
-.layout-b .bhero img{width:100%;height:100%;object-fit:cover;filter:saturate(1.1) contrast(1.05)}
-.layout-b .bhero .boverlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.1) 0%,rgba(0,0,0,.3) 30%,rgba(0,0,0,.75) 100%)}
-.layout-b .bhero .boverlay2{position:absolute;inset:0;background:rgba(180,120,60,.08);mix-blend-mode:overlay;pointer-events:none}
+.layout-b .bhero{position:absolute;inset:0;background:#0a0a0a}
+.layout-b .bhero .bhero-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:blur(50px) brightness(.55) saturate(1.2);transform:scale(1.18);z-index:0;display:block}
+.layout-b .bhero .bhero-fg{position:relative;width:100%;height:100%;object-fit:contain;filter:saturate(1.1) contrast(1.05);z-index:1;display:block}
+.layout-b .bhero .boverlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.1) 0%,rgba(0,0,0,.3) 30%,rgba(0,0,0,.75) 100%);z-index:2}
+.layout-b .bhero .boverlay2{position:absolute;inset:0;background:rgba(180,120,60,.08);mix-blend-mode:overlay;pointer-events:none;z-index:3}
 .layout-b .btop{position:absolute;top:32px;left:40px;right:40px;display:flex;justify-content:space-between;z-index:2}
 .layout-b .btop .blabel{font-family:"JetBrains Mono","Inter",monospace;font-size:12px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.7);background:rgba(0,0,0,.35);padding:5px 12px;backdrop-filter:blur(4px)}
 .layout-b .bbottom{position:absolute;bottom:0;left:0;right:0;padding:48px 56px;z-index:2}
@@ -157,7 +158,8 @@ img{display:block}
 <div class="layout-b">
   <div class="bhero">
     {% if images and images[0].b64 %}
-    <img src="data:image/png;base64,{{ images[0].b64 }}" alt="">
+    <img class="bhero-bg" src="data:image/png;base64,{{ images[0].b64 }}" alt="">
+    <img class="bhero-fg" src="data:image/png;base64,{{ images[0].b64 }}" alt="">
     {% else %}
     <div style="width:100%;height:100%;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%)"></div>
     {% endif %}

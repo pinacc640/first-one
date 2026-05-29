@@ -150,6 +150,10 @@ config_local.py
 secrets.json
 .env.local
 
+# xhs_tool runtime outputs
+xhs_tool/output/
+xhs_tool/input/screenshots/
+
 # Spyder project settings
 .spyderproject
 .spyproject

@@ -11,9 +11,11 @@ html,body{width:1080px;height:1440px;overflow:hidden;background:#fafaf8;font-fam
 .card{width:1080px;height:1440px;position:relative;display:flex;flex-direction:column;overflow:hidden}
 
 /* ============ Screenshot Hero (top ~60%) ============ */
-.hero{position:relative;width:100%;flex:0 0 60%;min-height:0;overflow:hidden;background:#f0f0ee}
-.hero img{width:100%;height:100%;object-fit:cover;object-position:center top;display:block}
-.hero .gradient-overlay{position:absolute;bottom:0;left:0;right:0;height:45%;background:linear-gradient(to top,rgba(0,0,0,.55) 0%,rgba(0,0,0,.35) 40%,transparent 100%);pointer-events:none}
+.hero{position:relative;width:100%;flex:0 0 60%;min-height:0;overflow:hidden;background:#1a1a1a}
+/* 双层图片：模糊版做背景填充 + 原图完整显示 */
+.hero .img-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;filter:blur(50px) brightness(.55) saturate(1.15);transform:scale(1.18);z-index:0;display:block}
+.hero .img-fg{position:relative;width:100%;height:100%;object-fit:contain;z-index:1;display:block}
+.hero .gradient-overlay{position:absolute;bottom:0;left:0;right:0;height:45%;background:linear-gradient(to top,rgba(0,0,0,.55) 0%,rgba(0,0,0,.35) 40%,transparent 100%);pointer-events:none;z-index:2}
 
 /* ============ Content Bottom ============ */
 .content{flex:1;padding:48px 56px 40px;display:flex;flex-direction:column;background:#fafaf8;position:relative}
@@ -47,13 +49,14 @@ html,body{width:1080px;height:1440px;overflow:hidden;background:#fafaf8;font-fam
   <div class="card" style="background:#0a0a0a">
     <div class="hero" style="flex:1;position:absolute;inset:0">
       {% if image_b64 %}
-      <img src="data:image/png;base64,{{ image_b64 }}" alt="">
+      <img class="img-bg" src="data:image/png;base64,{{ image_b64 }}" alt="">
+      <img class="img-fg" src="data:image/png;base64,{{ image_b64 }}" alt="">
       {% else %}
       <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#002FA7 0%,#0a0a0a 100%);color:rgba(255,255,255,.15);font-size:24px;font-family:mono">NO IMAGE</div>
       {% endif %}
       <div class="gradient-overlay" style="height:65%;background:linear-gradient(to top,rgba(0,0,0,.8) 0%,rgba(0,0,0,.4) 40%,transparent 100%)"></div>
       <!-- secondary gradient from left for text contrast -->
-      <div style="position:absolute;bottom:0;left:0;width:60%;height:100%;background:linear-gradient(to right,rgba(0,0,0,.5) 0%,transparent 100%);pointer-events:none"></div>
+      <div style="position:absolute;bottom:0;left:0;width:60%;height:100%;background:linear-gradient(to right,rgba(0,0,0,.5) 0%,transparent 100%);pointer-events:none;z-index:2"></div>
     </div>
     <div class="hero-text" style="padding:64px 56px">
       <div class="product-tag-light">{{ product_title }}</div>
@@ -65,7 +68,8 @@ html,body{width:1080px;height:1440px;overflow:hidden;background:#fafaf8;font-fam
   <div class="card">
     <div class="hero">
       {% if image_b64 %}
-      <img src="data:image/png;base64,{{ image_b64 }}" alt="">
+      <img class="img-bg" src="data:image/png;base64,{{ image_b64 }}" alt="">
+      <img class="img-fg" src="data:image/png;base64,{{ image_b64 }}" alt="">
       {% else %}
       <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#e0e0e0 0%,#f5f5f5 100%);color:#999;font-family:mono">NO IMAGE</div>
       {% endif %}

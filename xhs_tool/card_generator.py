@@ -23,14 +23,30 @@ CARD_HEIGHT = 1440
 
 
 def image_to_b64(image_path: str) -> str:
-    """将图片文件转为 base64 字符串 (PNG 格式)"""
+    """将图片文件转为 base64 字符串 (PNG 格式)。
+
+    兼容各种 PIL mode（RGBA / P / L / CMYK / 1 等），统一输出 RGB PNG。
+    """
     from PIL import Image
 
     img = Image.open(image_path)
-    # 如果是 RGBA 转 RGB 避免格式问题
-    if img.mode == "RGBA":
-        img = img.convert("RGB")
-    # 缩放到合理尺寸 (宽度不超过 1080 保持比例)
+
+    # 第一步：统一转成 RGB（兼容所有原始 mode）
+    if img.mode != "RGB":
+        # RGBA / P+透明 → 用浅色底合成；其它 mode 直接 convert
+        if img.mode == "RGBA":
+            bg = Image.new("RGB", img.size, (250, 250, 248))
+            bg.paste(img, mask=img.split()[-1])  # 用 alpha 通道当蒙版
+            img = bg
+        elif img.mode == "P" and "transparency" in img.info:
+            img = img.convert("RGBA")
+            bg = Image.new("RGB", img.size, (250, 250, 248))
+            bg.paste(img, mask=img.split()[-1])
+            img = bg
+        else:
+            img = img.convert("RGB")
+
+    # 第二步：缩放（保持比例，宽度上限 CARD_WIDTH）
     w, h = img.size
     if w > CARD_WIDTH:
         ratio = CARD_WIDTH / w
@@ -40,7 +56,7 @@ def image_to_b64(image_path: str) -> str:
 
     import io
     buf = io.BytesIO()
-    img.save(buf, format="PNG")
+    img.save(buf, format="PNG", optimize=False)
     return base64.b64encode(buf.getvalue()).decode("utf-8")
 
 
@@ -219,7 +235,7 @@ def generate_cover(
         )
         return html_to_png(html, output_path)
     except Exception as e:
-        print(f"❌ 详情页卡片生成失败: {e}")
+        print(f"[ERROR] 详情页卡片生成失败: {e}")
         import traceback
         traceback.print_exc()
         return None
@@ -266,7 +282,7 @@ def generate_magazine_cover(
         )
         return html_to_png(html, output_path)
     except Exception as e:
-        print(f"❌ 杂志封面生成失败: {e}")
+        print(f"[ERROR] 杂志封面生成失败: {e}")
         import traceback
         traceback.print_exc()
         return None

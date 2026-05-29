@@ -503,7 +503,12 @@ def main():
                     pass
 
                 cover_path = str(note_dir / "cover.png")
-                cover_layouts = ["A", "B", "C", "D", "E"]
+                # 给 3 篇笔记分配视觉差异最大的 3 种 layout：
+                #   A = 深色 Swiss Grid + 设备框        （高密度文字 + 截图网格）
+                #   E = Product Grid 多截图网格         （4 张截图拼版，最丰富）
+                #   B = 全屏大图 + 浮层标题             （单图大胆视觉冲击）
+                # 避开 C（衬线大留白）和 D（深色电影感，视觉与 A 接近）以最大化差异。
+                cover_layouts = ["A", "E", "B"]
                 cover_result = generate_magazine_cover(
                     note_title=note["title"],
                     product_title=product_title,
@@ -513,7 +518,7 @@ def main():
                     subtitle=subtitle,
                     vol=i + 1,
                     stock_b64=stock_b64,
-                    cover_layout=cover_layouts[i % 2],
+                    cover_layout=cover_layouts[i % len(cover_layouts)],
                 )
 
                 if cover_result:
