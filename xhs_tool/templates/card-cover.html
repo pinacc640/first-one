@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-accent="ikb">
+<head>
+<meta charset="utf-8">
+<title>{{ title }}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1080px;height:1440px;overflow:hidden;background:#fafaf8;font-family:"Inter","Noto Sans SC","Microsoft YaHei UI",system-ui,-apple-system,sans-serif;text-rendering:auto;-webkit-font-smoothing:auto}
+
+/* ============ Card Container ============ */
+.card{width:1080px;height:1440px;position:relative;display:flex;flex-direction:column;overflow:hidden}
+
+/* ============ Screenshot Hero (top ~60%) ============ */
+.hero{position:relative;width:100%;flex:0 0 60%;min-height:0;overflow:hidden;background:#f0f0ee}
+.hero img{width:100%;height:100%;object-fit:cover;object-position:center top;display:block}
+.hero .gradient-overlay{position:absolute;bottom:0;left:0;right:0;height:45%;background:linear-gradient(to top,rgba(0,0,0,.55) 0%,rgba(0,0,0,.35) 40%,transparent 100%);pointer-events:none}
+
+/* ============ Content Bottom ============ */
+.content{flex:1;padding:48px 56px 40px;display:flex;flex-direction:column;background:#fafaf8;position:relative}
+/* Swiss top rule */
+.content::before{content:"";position:absolute;top:0;left:56px;right:56px;height:2px;background:#002FA7}
+
+/* Product tag */
+.product-tag{display:inline-flex;align-items:center;gap:8px;font-family:"IBM Plex Mono","Inter",monospace;font-size:14px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:#002FA7;margin-bottom:16px}
+.product-tag::before{content:"";width:20px;height:1px;background:#002FA7}
+
+/* Title */
+.title{font-family:"Inter","Noto Sans SC",sans-serif;font-weight:300;font-size:56px;line-height:1.08;letter-spacing:-.02em;color:#0a0a0a;flex:1;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden;margin-top:4px}
+
+/* Tags row */
+.tags-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;padding-top:16px;border-top:1px solid #d4d4d2}
+.tag{font-family:"IBM Plex Mono","Inter",monospace;font-size:12px;font-weight:500;letter-spacing:.1em;color:#737373;background:#f0f0ee;padding:4px 12px;border-radius:0}
+
+/* ============ Accent Accents ============ */
+.accent-line{position:absolute;bottom:0;left:0;right:0;height:4px;background:#002FA7}
+
+/* ============ Hero Text Overlay (for style B: full-bleed) ============ */
+.hero-text{position:absolute;bottom:0;left:0;right:0;padding:56px;z-index:2}
+.hero-text .product-tag-light{font-family:"IBM Plex Mono","Inter",monospace;font-size:13px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.8);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.hero-text .product-tag-light::before{content:"";width:16px;height:1px;background:rgba(255,255,255,.6)}
+.hero-text .title-light{font-family:"Inter","Noto Sans SC",sans-serif;font-weight:300;font-size:52px;line-height:1.08;letter-spacing:-.02em;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.3)}
+</style>
+</head>
+<body>
+{% if layout == "hero" %}
+  <!-- ========== Full-bleed Hero Layout ========== -->
+  <div class="card" style="background:#0a0a0a">
+    <div class="hero" style="flex:1;position:absolute;inset:0">
+      {% if image_b64 %}
+      <img src="data:image/png;base64,{{ image_b64 }}" alt="">
+      {% else %}
+      <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#002FA7 0%,#0a0a0a 100%);color:rgba(255,255,255,.15);font-size:24px;font-family:mono">NO IMAGE</div>
+      {% endif %}
+      <div class="gradient-overlay" style="height:65%;background:linear-gradient(to top,rgba(0,0,0,.8) 0%,rgba(0,0,0,.4) 40%,transparent 100%)"></div>
+      <!-- secondary gradient from left for text contrast -->
+      <div style="position:absolute;bottom:0;left:0;width:60%;height:100%;background:linear-gradient(to right,rgba(0,0,0,.5) 0%,transparent 100%);pointer-events:none"></div>
+    </div>
+    <div class="hero-text" style="padding:64px 56px">
+      <div class="product-tag-light">{{ product_title }}</div>
+      <h1 class="title-light" style="max-width:90%">{{ note_title }}</h1>
+    </div>
+  </div>
+{% else %}
+  <!-- ========== Split Layout (default) ========== -->
+  <div class="card">
+    <div class="hero">
+      {% if image_b64 %}
+      <img src="data:image/png;base64,{{ image_b64 }}" alt="">
+      {% else %}
+      <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#e0e0e0 0%,#f5f5f5 100%);color:#999;font-family:mono">NO IMAGE</div>
+      {% endif %}
+      <div class="gradient-overlay" style="height:30%"></div>
+    </div>
+    <div class="content">
+      <div class="product-tag">{{ product_title }}</div>
+      <h1 class="title">{{ note_title }}</h1>
+      {% if tags %}
+      <div class="tags-row">
+        {% for tag in tags[:6] %}
+        <span class="tag">{{ tag }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {# 角标装饰 #}
+      <div style="position:absolute;bottom:20px;right:28px;width:32px;height:32px;border:2px solid #d4d4d2;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:mono;font-size:13px;color:#d4d4d2">✦</div>
+    </div>
+    <div class="accent-line"></div>
+  </div>
+{% endif %}
+</body>
+</html>

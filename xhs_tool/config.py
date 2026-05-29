@@ -8,7 +8,10 @@ import os
 # 文案生成（Gemini，免费配额够用）
 # 获取地址：https://aistudio.google.com/apikey
 # ============================================================
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+GEMINI_API_KEYS = [
+    os.environ.get("GEMINI_API_KEY", "AIzaSyCNcs-Ug-Riy982wnAg2iqLk9Z1hGsVwo8"),
+    "AIzaSyDK2kbMePkV95dwur17PED5uu5kDppJeUY",
+]
 TEXT_MODEL = "gemini-2.5-flash"
 
 

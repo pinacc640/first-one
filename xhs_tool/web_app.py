@@ -12,6 +12,7 @@ import io
 import json
 import os
 import sys
+import tempfile
 import time
 from pathlib import Path
 
@@ -24,7 +25,7 @@ from PIL import Image
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from config import (
-    GEMINI_API_KEY,
+    GEMINI_API_KEYS,
     TEXT_MODEL,
     NUM_NOTES,
     GEMINI_IMAGE_MODEL,
@@ -40,13 +41,14 @@ from config import (
 from prompts import (
     COPYWRITING_SYSTEM_PROMPT,
     COPYWRITING_USER_PROMPT,
-    COVER_IMAGE_PROMPT,
 )
+from card_generator import generate_cover, generate_magazine_cover, generate_detail_pages
+from stock_photos import fetch_stock_image
 
 
 # ============ 页面配置 ============
 st.set_page_config(
-    page_title="小红书笔记批量生成工具",
+    page_title="小红书笔记 · Guizang 杂志封面",
     page_icon="📕",
     layout="wide",
 )
@@ -115,12 +117,18 @@ st.markdown("""
 
 
 # ============ 辅助函数 ============
+# ============ API Key 轮换 ============
+_key_index = 0
+
 def get_client():
-    """创建 Gemini API 客户端"""
-    if not GEMINI_API_KEY:
-        st.error("❌ 请在 config.py 中配置 GEMINI_API_KEY，或设置环境变量")
+    """创建 Gemini API 客户端（多 key 轮换）"""
+    global _key_index
+    if not GEMINI_API_KEYS or not GEMINI_API_KEYS[0]:
+        st.error("❌ 请在 config.py 中配置 GEMINI_API_KEYS，或设置环境变量 GEMINI_API_KEY")
         return None
-    return genai.Client(api_key=GEMINI_API_KEY)
+    key = GEMINI_API_KEYS[_key_index % len(GEMINI_API_KEYS)]
+    _key_index += 1
+    return genai.Client(api_key=key)
 
 
 def uploaded_file_to_part(uploaded_file):
@@ -137,7 +145,7 @@ def uploaded_file_to_part(uploaded_file):
 
 
 def generate_copywriting(client, product_title, uploaded_files):
-    """使用 Gemini 生成小红书文案"""
+    """使用 Gemini 生成小红书文案（含自动重试）"""
     user_prompt = COPYWRITING_USER_PROMPT.format(
         num_notes=NUM_NOTES,
         product_title=product_title,
@@ -148,16 +156,33 @@ def generate_copywriting(client, product_title, uploaded_files):
         uploaded_file.seek(0)  # 确保从文件开头读取
         contents.append(uploaded_file_to_part(uploaded_file))
 
-    response = client.models.generate_content(
-        model=TEXT_MODEL,
-        contents=contents,
-        config=types.GenerateContentConfig(
-            system_instruction=COPYWRITING_SYSTEM_PROMPT,
-            temperature=0.8,
-        ),
-    )
+    import time
+    max_retries = 5
+    last_error = None
+    for attempt in range(max_retries):
+        try:
+            response = client.models.generate_content(
+                model=TEXT_MODEL,
+                contents=contents,
+                config=types.GenerateContentConfig(
+                    system_instruction=COPYWRITING_SYSTEM_PROMPT,
+                    temperature=0.8,
+                ),
+            )
+            raw_text = response.text.strip()
+            break
+        except Exception as e:
+            last_error = e
+            err_str = str(e)
+            if "503" in err_str or "UNAVAILABLE" in err_str or "429" in err_str:
+                wait = 2 ** attempt * 2
+                print(f"API 繁忙，第 {attempt+1} 次重试，等待 {wait} 秒...")
+                time.sleep(wait)
+                continue
+            raise  # 非限流错误直接抛
 
-    raw_text = response.text.strip()
+    else:
+        raise Exception(f"API 服务不可用，已重试 {max_retries} 次: {last_error}")
 
     # 尝试提取 JSON 块
     if "```json" in raw_text:
@@ -349,8 +374,8 @@ def generate_cover_with_imagen(client, product_title, note_title):
 # ============ 主界面 ============
 def main():
     # 标题
-    st.title("📕 小红书笔记批量生成工具")
-    st.markdown("上传产品截图，自动生成精美的种草文案和封面图")
+    st.title("📕 小红书笔记生成 · Guizang 杂志封面")
+    st.markdown("上传产品截图，自动生成种草文案 + **杂志级封面卡片**")
 
     # 侧边栏配置
     with st.sidebar:
@@ -360,27 +385,12 @@ def main():
         skip_cover = st.checkbox("跳过封面图生成", value=False)
 
         st.markdown("---")
-        st.markdown("**🎨 封面图服务状态**")
-        if GEMINI_API_KEY and USE_GEMINI_IMAGE in ("auto", "yes"):
-            st.markdown("- ✅ Gemini（优先，需付费）")
-        else:
-            st.markdown("- ⚪ Gemini（未启用）")
-        if OPENAI_API_KEY:
-            st.markdown("- ✅ OpenAI gpt-image")
-        else:
-            st.markdown("- ⚪ OpenAI（未配置 key）")
-        if SILICONFLOW_API_KEY:
-            st.markdown("- ✅ SiliconFlow（推荐，送免费额度）")
-        else:
-            st.markdown("- ⚪ SiliconFlow（未配置 key）")
-        st.markdown("- ✅ Pollinations（免费兜底）")
-        with st.expander("💡 如何获取更好效果"):
-            st.markdown(
-                "**推荐配置 SiliconFlow**（免费质量接近 Gemini）:\n"
-                "1. 注册 [siliconflow.cn](https://cloud.siliconflow.cn/account/ak)\n"
-                "2. 新账号送 ¥14 额度\n"
-                "3. `export SILICONFLOW_API_KEY=sk-...`"
-            )
+        st.markdown("**🎨 输出内容（每篇笔记）**")
+        st.markdown("- 🟦 **1 张 Swiss 杂志封面**")
+        st.markdown("  - 2~4 张截图网格排版，各配不同背景纹理")
+        st.markdown("  - 可选 Pexels 图库背景图")
+        st.markdown("- 📄 **5 张详情页图片**（布局轮换）")
+        st.markdown("- 大字标题 + 满版构图")
 
         st.markdown("---")
         st.markdown("**使用说明：**")
@@ -449,24 +459,99 @@ def main():
             return
 
         progress_bar.progress(50)
-        status_text.text("🎨 正在生成封面图...")
+        status_text.text("🎨 正在生成杂志风封面图...")
 
-        # Step 2: 生成封面图
-        cover_images = []
+        # Step 2: 保存截图到临时目录
+        tmp_dir = Path(tempfile.mkdtemp())
+        saved_images = []
+        for uf in uploaded_files:
+            uf.seek(0)
+            ext = Path(uf.name).suffix or ".png"
+            dest = tmp_dir / f"screenshot_{len(saved_images)}{ext}"
+            dest.write_bytes(uf.read())
+            saved_images.append(str(dest))
+
+        # Step 3: 用 card_generator 生成图片
+        # 每篇笔记: 1 张杂志封面 + 3 张详情页
+        all_results = []  # [(note_idx, type, img_data, mime, label), ...]
 
         if skip_cover:
-            cover_images = [(None, None, None)] * len(notes)
+            pass  # no images
         else:
+            output_dir = Path(__file__).parent / "output"
+            output_dir.mkdir(exist_ok=True)
+
+            total = len(notes) * 6  # 1 cover + 5 detail per note
+            done = 0
+
             for i, note in enumerate(notes):
-                img_data, mime_type, provider = generate_cover_image(
-                    client, product_title, note["title"]
+                note_dir = output_dir / f"note_{i+1}"
+                note_dir.mkdir(exist_ok=True)
+
+                # --- 1. 杂志封面（多截图 + 可选 stock photo 背景）---
+                subtitle = note.get("body", "")[:30].strip()
+                if len(subtitle) == 30:
+                    subtitle = subtitle.rstrip("，。；") + "..."
+
+                status_text.text(f"🎨 正在生成笔记 {i+1} 的杂志封面...")
+
+                # 取 stock photo 作为封面背景（异步兜底，失败不影响主流程）
+                stock_b64 = None
+                try:
+                    stock_b64 = fetch_stock_image(product_title, timeout=10)
+                except Exception:
+                    pass
+
+                cover_path = str(note_dir / "cover.png")
+                cover_layouts = ["A", "B", "C", "D", "E"]
+                cover_result = generate_magazine_cover(
+                    note_title=note["title"],
+                    product_title=product_title,
+                    image_paths=saved_images,  # 传全部截图，模板自动布局
+                    output_path=cover_path,
+                    tags=note.get("tags", [])[:6],
+                    subtitle=subtitle,
+                    vol=i + 1,
+                    stock_b64=stock_b64,
+                    cover_layout=cover_layouts[i % 2],
                 )
-                cover_images.append((img_data, mime_type, provider))
-                progress = 50 + (i + 1) * 50 // len(notes)
+
+                if cover_result:
+                    img_bytes = Path(cover_path).read_bytes()
+                    all_results.append((i, "cover", img_bytes, "image/png", "Guizang Swiss Cover"))
+                else:
+                    all_results.append((i, "cover", None, None, None))
+
+                done += 1
+                progress = 50 + done * 50 // total
                 progress_bar.progress(progress)
 
-                if i < len(notes) - 1:
-                    time.sleep(1)
+                # --- 2. 五张详情页 ---
+                status_text.text(f"📄 正在生成笔记 {i+1} 的详情页（5张）...")
+
+                detail_results = generate_detail_pages(
+                    note_title=note["title"],
+                    product_title=product_title,
+                    image_paths=saved_images,
+                    output_dir=str(note_dir),
+                    tags=note.get("tags", [])[:6],
+                    prefix="detail",
+                    count=5,
+                )
+
+                for detail_path, layout in detail_results:
+                    if detail_path:
+                        img_bytes = Path(detail_path).read_bytes()
+                        all_results.append((i, "detail", img_bytes, "image/png", f"Detail {layout}"))
+                    else:
+                        all_results.append((i, "detail", None, None, None))
+                    done += 1
+                    progress = 50 + done * 50 // total
+                    progress_bar.progress(progress)
+
+        # 清理临时目录
+        import shutil
+        shutil.rmtree(tmp_dir, ignore_errors=True)
 
         status_text.text("🎉 生成完成!")
         progress_bar.progress(100)
@@ -475,33 +560,30 @@ def main():
         st.markdown("---")
         st.subheader(f"📋 生成结果：{product_title}")
 
-        for i, (note, (img_data, mime_type, provider)) in enumerate(zip(notes, cover_images)):
+        for i, note in enumerate(notes):
             st.markdown(f"### 第 {i+1} 篇")
-            # 封面图在左，文案在右
+            note_results = [r for r in all_results if r[0] == i]
+
+            # 封面图 + 文案在同一行
             c1, c2 = st.columns([1, 1.2])
 
+            cover_data = next((r for r in note_results if r[1] == "cover"), None)
             with c1:
-                if img_data:
-                    img_bytes = img_data if isinstance(img_data, bytes) else base64.b64decode(img_data)
-                    img = Image.open(io.BytesIO(img_bytes))
-                    caption = f"封面图 {i+1}"
-                    if provider:
-                        caption += f" · {provider}"
-                    st.image(img, caption=caption, use_container_width=True)
-                    # 下载按钮
-                    ext = "png" if "png" in (mime_type or "") else "jpg"
+                if cover_data and cover_data[2]:
+                    cover_bytes = cover_data[2] if isinstance(cover_data[2], bytes) else base64.b64decode(cover_data[2])
+                    img = Image.open(io.BytesIO(cover_bytes))
+                    st.image(img, caption=f"杂志封面 {i+1} · {cover_data[4]}", use_container_width=True)
                     st.download_button(
-                        label=f"⬇️ 下载封面图 {i+1}",
-                        data=img_bytes,
-                        file_name=f"cover_{i+1}.{ext}",
-                        mime=mime_type or "image/png",
+                        label=f"⬇️ 下载封面 {i+1}",
+                        data=cover_bytes,
+                        file_name=f"cover_{i+1}.png",
+                        mime="image/png",
                         use_container_width=True,
                     )
                 else:
-                    st.info(f"封面图 {i+1} 生成失败")
+                    st.info(f"杂志封面 {i+1} 生成失败")
 
             with c2:
-                # 标题 —— 可复制
                 st.markdown("**📌 标题**（可直接复制）")
                 st.text_area(
                     label=f"title_{i}",
@@ -510,27 +592,44 @@ def main():
                     key=f"title_{i}",
                     label_visibility="collapsed",
                 )
-
-                # 正文 —— 可复制
                 st.markdown("**📝 正文**（可直接复制）")
                 st.text_area(
                     label=f"body_{i}",
                     value=note["body"],
-                    height=220,
+                    height=180,
                     key=f"body_{i}",
                     label_visibility="collapsed",
                 )
-
-                # 标签 —— 可复制，空格分隔方便粘贴
                 tags_str = " ".join(note["tags"])
                 st.markdown("**🏷️ 标签**（可直接复制）")
                 st.text_area(
                     label=f"tags_{i}",
                     value=tags_str,
-                    height=100,
+                    height=60,
                     key=f"tags_{i}",
                     label_visibility="collapsed",
                 )
+
+            # 5 张详情页预览
+            detail_results = [r for r in note_results if r[1] == "detail"]
+            if detail_results and any(r[2] for r in detail_results):
+                st.markdown("**📄 详情页图片（5张）**")
+                cols = st.columns(min(5, len(detail_results)))
+                for j, (col, dr) in enumerate(zip(cols, detail_results)):
+                    with col:
+                        if dr[2]:
+                            det_bytes = dr[2] if isinstance(dr[2], bytes) else base64.b64decode(dr[2])
+                            det_img = Image.open(io.BytesIO(det_bytes))
+                            st.image(det_img, caption=f"详情 {j+1} · {dr[4]}", use_container_width=True)
+                            st.download_button(
+                                label=f"⬇️ 下载 {j+1}",
+                                data=det_bytes,
+                                file_name=f"detail_{i+1}_{j+1}.png",
+                                mime="image/png",
+                                use_container_width=True,
+                            )
+                        else:
+                            st.info(f"详情 {j+1} 失败")
 
             st.markdown("---")
 

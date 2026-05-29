@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>{{ title }} · Cover</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&family=Noto+Sans+SC:wght@200;300;400;500;700&family=Noto+Serif+SC:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1080px;height:1440px;overflow:hidden;font-family:"Inter","Noto Sans SC","Microsoft YaHei UI",sans-serif;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+img{display:block}
+
+/* ================================================================ */
+/* LAYOUT A: Swiss Grid — 深色 · 大字报 · 设备框截图                */
+/* ================================================================ */
+.layout-a{background:#0a0a0a;color:#fafaf8;padding:48px 56px 40px;height:100%;display:flex;flex-direction:column;position:relative;z-index:1}
+.layout-a .achrome{display:flex;justify-content:space-between;align-items:center;font-family:"JetBrains Mono","Inter",monospace;font-size:14px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:#555;border-bottom:1px solid #222;padding-bottom:12px;margin-bottom:20px;flex-shrink:0}
+.layout-a .ak{font-family:"JetBrains Mono","Inter",monospace;font-size:14px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:#002FA7;margin-bottom:12px;flex-shrink:0}
+.layout-a .atitle{font-family:"Inter","Noto Sans SC",sans-serif;font-weight:200;font-size:112px;line-height:1.02;letter-spacing:-.02em;color:#fafaf8;margin:0 0 16px;overflow:hidden;flex-shrink:0}
+.layout-a .atitle.sm{font-size:72px}
+.layout-a .arow{display:flex;gap:14px;flex:1;min-height:0;margin-bottom:12px}
+.layout-a .arow .aitem{flex:1;display:flex}
+.layout-a .arow .aitem.solo{max-width:60%}
+.layout-a .aframe{width:100%;background:#141414;border:1px solid #222;overflow:hidden;display:flex;flex-direction:column}
+.layout-a .aframe .abar{height:24px;background:#1a1a1a;border-bottom:1px solid #222;display:flex;align-items:center;padding:0 12px;gap:6px;flex-shrink:0}
+.layout-a .aframe .abar .d{width:7px;height:7px;border-radius:50%}
+.layout-a .aframe .abar .d1{background:#ff5f57}
+.layout-a .aframe .abar .d2{background:#ffbd2e}
+.layout-a .aframe .abar .d3{background:#28c840}
+.layout-a .ashot{flex:1;overflow:hidden;display:flex;align-items:center;justify-content:center;min-height:120px;position:relative}
+.layout-a .ashot img{width:100%;height:100%;object-fit:contain;padding:8px;filter:grayscale(.4) contrast(1.2) brightness(.9);position:relative;z-index:1}
+.layout-a .ashot::after{content:"";position:absolute;inset:0;background:rgba(0,47,167,.12);mix-blend-mode:color;pointer-events:none;z-index:2}
+.layout-a .ashot.bg-grid{background-image:linear-gradient(to right,rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(to bottom,rgba(255,255,255,.04) 1px,transparent 1px);background-size:28px 28px}
+.layout-a .ashot.bg-dot{background-image:radial-gradient(rgba(255,255,255,.06) .6px,transparent .6px);background-size:12px 12px}
+.layout-a .ashot.bg-paper{background:#181818}
+.layout-a .ashot.bg-ink{background:#111}
+.layout-a .ahrule{width:80px;height:3px;background:#002FA7;border:0;margin:0 0 16px;flex-shrink:0}
+.layout-a .alead{font-family:"Noto Sans SC","Inter",sans-serif;font-weight:400;font-size:26px;line-height:1.5;color:rgba(250,250,248,.7);margin:0 0 20px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;flex-shrink:0}
+.layout-a .ameta{display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.layout-a .ameta-l{display:flex;align-items:center;gap:10px}
+.layout-a .ameta-l .dot{width:4px;height:4px;border-radius:50%;background:#002FA7}
+.layout-a .ameta-item{font-family:"JetBrains Mono","Inter",monospace;font-size:13px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:#555}
+.layout-a .atags{display:flex;gap:6px}
+.layout-a .atags span{font-family:"JetBrains Mono","Inter",monospace;font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:#555;background:rgba(255,255,255,.06);padding:3px 8px}
+
+/* ================================================================ */
+/* LAYOUT B: Full-bleed Hero — 全屏大图 + 浮层标题                   */
+/* ================================================================ */
+.layout-b{height:100%;position:relative;z-index:1;overflow:hidden}
+.layout-b .bhero{position:absolute;inset:0}
+.layout-b .bhero img{width:100%;height:100%;object-fit:cover;filter:saturate(1.1) contrast(1.05)}
+.layout-b .bhero .boverlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.1) 0%,rgba(0,0,0,.3) 30%,rgba(0,0,0,.75) 100%)}
+.layout-b .bhero .boverlay2{position:absolute;inset:0;background:rgba(180,120,60,.08);mix-blend-mode:overlay;pointer-events:none}
+.layout-b .btop{position:absolute;top:32px;left:40px;right:40px;display:flex;justify-content:space-between;z-index:2}
+.layout-b .btop .blabel{font-family:"JetBrains Mono","Inter",monospace;font-size:12px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.7);background:rgba(0,0,0,.35);padding:5px 12px;backdrop-filter:blur(4px)}
+.layout-b .bbottom{position:absolute;bottom:0;left:0;right:0;padding:48px 56px;z-index:2}
+.layout-b .bbottom .bcat{font-family:"JetBrains Mono","Inter",monospace;font-size:13px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.6);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.layout-b .bbottom .bcat::before{content:"";width:16px;height:2px;background:rgba(255,255,255,.5)}
+.layout-b .bbottom .btitle{font-family:"Noto Serif SC","Noto Sans SC",serif;font-weight:400;font-size:68px;line-height:1.12;letter-spacing:-.005em;color:#fff;text-shadow:0 2px 20px rgba(0,0,0,.4);max-width:90%;margin-bottom:12px}
+.layout-b .bbottom .bsub{font-family:"Noto Sans SC","Inter",sans-serif;font-weight:400;font-size:24px;line-height:1.5;color:rgba(255,255,255,.65);overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical}
+.layout-b .btags{position:absolute;top:32px;right:40px;z-index:2;display:flex;gap:6px;flex-direction:row-reverse}
+.layout-b .btags span{font-family:"JetBrains Mono","Inter",monospace;font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.6);background:rgba(0,0,0,.25);padding:4px 10px;backdrop-filter:blur(4px)}
+
+/* ================================================================ */
+/* LAYOUT C: Serif Center — 衬线居中 · 大量留白 · 文雅               */
+/* ================================================================ */
+.layout-c{background:#f3f1ec;color:#1a1a1a;padding:72px 80px 56px;height:100%;display:flex;flex-direction:column;position:relative;z-index:1}
+.layout-c .ctop{display:flex;justify-content:space-between;align-items:center;font-family:"JetBrains Mono","Inter",monospace;font-size:12px;font-weight:400;letter-spacing:.12em;text-transform:uppercase;color:#999;padding-bottom:16px;border-bottom:1px solid #ddd;margin-bottom:0;flex-shrink:0}
+.layout-c .ccat{font-family:"JetBrains Mono","Inter",monospace;font-size:13px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:#002FA7;text-align:center;margin:36px 0 8px;flex-shrink:0}
+.layout-c .ctitle{font-family:"Noto Serif SC",serif;font-weight:400;font-size:64px;line-height:1.2;letter-spacing:.02em;color:#1a1a1a;text-align:center;margin:0 auto 12px;max-width:85%;overflow:hidden;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;flex-shrink:0}
+.layout-c .cdivider{width:40px;height:1px;background:#002FA7;margin:16px auto;flex-shrink:0}
+.layout-c .csub{font-family:"Noto Serif SC","Noto Sans SC",serif;font-weight:400;font-size:22px;line-height:1.6;color:#666;text-align:center;max-width:75%;margin:0 auto;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;flex-shrink:0}
+.layout-c .cimg-wrap{margin:24px auto 0;max-width:55%;flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.layout-c .cimg-wrap .cframe{width:100%;border:1px solid #ddd;border-radius:4px;overflow:hidden;background:#fff}
+.layout-c .cimg-wrap .cframe img{width:100%;height:100%;object-fit:contain;display:block;filter:grayscale(.15) contrast(1.1);mix-blend-mode:multiply;opacity:.85}
+.layout-c .cbot{display:flex;justify-content:center;gap:16px;padding-top:20px;flex-shrink:0;flex-wrap:wrap}
+.layout-c .cbot span{font-family:"JetBrains Mono","Inter",monospace;font-size:10px;font-weight:400;letter-spacing:.08em;text-transform:uppercase;color:#999;background:rgba(0,0,0,.04);padding:4px 10px}
+
+/* ================================================================ */
+/* LAYOUT D: Dark Cinematic — 深色电影感 · 粗体大字 · 冷色调         */
+/* ================================================================ */
+.layout-d{height:100%;position:relative;z-index:1;overflow:hidden}
+.layout-d .dbg{position:absolute;inset:0}
+.layout-d .dbg img{width:100%;height:100%;object-fit:cover;filter:grayscale(.6) contrast(1.3) brightness(.5)}
+.layout-d .dbg .doverlay{position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,20,60,.6) 0%,rgba(0,0,0,.8) 100%)}
+.layout-d .dcontent{position:absolute;inset:0;padding:60px 64px 48px;display:flex;flex-direction:column;z-index:2}
+.layout-d .dtop{display:flex;justify-content:space-between;font-family:"JetBrains Mono","Inter",monospace;font-size:12px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.5);padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,.1);flex-shrink:0}
+.layout-d .dmid{flex:1;display:flex;flex-direction:column;justify-content:center}
+.layout-d .dcat{font-family:"JetBrains Mono","Inter",monospace;font-size:14px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:#4a7aff;margin-bottom:16px}
+.layout-d .dtitle{font-family:"Inter","Noto Sans SC",sans-serif;font-weight:700;font-size:96px;line-height:1.04;letter-spacing:-.01em;color:#fff;max-width:85%;text-shadow:0 4px 30px rgba(0,0,0,.5);margin-bottom:16px}
+.layout-d .dsub{font-family:"Noto Sans SC","Inter",sans-serif;font-weight:400;font-size:26px;line-height:1.5;color:rgba(255,255,255,.5);max-width:70%}
+.layout-d .dbot{display:flex;justify-content:space-between;align-items:center;padding-top:20px;border-top:1px solid rgba(255,255,255,.08);flex-shrink:0}
+.layout-d .dbot-l{display:flex;align-items:center;gap:10px}
+.layout-d .dbot-l .marker{width:4px;height:4px;border-radius:50%;background:#4a7aff}
+.layout-d .dbot-item{font-family:"JetBrains Mono","Inter",monospace;font-size:12px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.4)}
+.layout-d .dtags{display:flex;gap:5px}
+.layout-d .dtags span{font-family:"JetBrains Mono","Inter",monospace;font-size:9px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.4);background:rgba(255,255,255,.06);padding:3px 8px}
+
+/* ================================================================ */
+/* LAYOUT E: Product Grid — 网格对比 · 多截图                        */
+/* ================================================================ */
+.layout-e{background:#0c0c0c;color:#fafaf8;padding:48px 56px 40px;height:100%;display:flex;flex-direction:column;position:relative;z-index:1}
+.layout-e .etop{display:flex;justify-content:space-between;font-family:"JetBrains Mono","Inter",monospace;font-size:12px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:#555;padding-bottom:10px;border-bottom:1px solid #222;margin-bottom:20px;flex-shrink:0}
+.layout-e .ecat{font-family:"JetBrains Mono","Inter",monospace;font-size:12px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:#002FA7;margin-bottom:10px;flex-shrink:0}
+.layout-e .etitle{font-family:"Inter","Noto Sans SC",sans-serif;font-weight:300;font-size:72px;line-height:1.06;letter-spacing:-.01em;color:#fafaf8;margin:0 0 18px;flex-shrink:0;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.layout-e .egrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;flex:1;min-height:0}
+.layout-e .egrid .ecell{background:#141414;border:1px solid #222;border-radius:4px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.layout-e .egrid .ecell img{width:100%;height:100%;object-fit:contain;padding:4px;filter:grayscale(.3) contrast(1.15) brightness(.95)}
+.layout-e .egrid .ecell .tint{position:absolute;inset:0;background:rgba(0,47,167,.1);mix-blend-mode:color;pointer-events:none;z-index:2}
+.layout-e .emeta{display:flex;justify-content:space-between;align-items:center;padding-top:16px;border-top:1px solid #222;margin-top:12px;flex-shrink:0}
+.layout-e .emeta-item{font-family:"JetBrains Mono","Inter",monospace;font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:#555}
+.layout-e .etags{display:flex;gap:4px}
+.layout-e .etags span{font-family:"JetBrains Mono","Inter",monospace;font-size:9px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:#555;background:rgba(255,255,255,.06);padding:3px 7px}
+</style>
+</head>
+<body>
+
+{% if cover_layout == "A" %}
+<!-- ===== LAYOUT A: Swiss Grid ===== -->
+<div class="layout-a">
+  <div class="achrome">
+    <span>Vol. {{ vol }} · Guizang</span>
+    <span>{{ date }}</span>
+  </div>
+  <div class="ak">教辅资料 · {{ product_title }}</div>
+  <h1 class="atitle{% if note_title|length > 12 %} sm{% endif %}">{{ note_title }}</h1>
+  {% if images %}
+  <div class="arow">
+    {% for img in images %}
+    <div class="aitem{% if images|length == 1 %} solo{% endif %}">
+      <div class="aframe">
+        <div class="abar"><span class="d d1"></span><span class="d d2"></span><span class="d d3"></span></div>
+        <div class="ashot bg-{{ img.bg }}">
+          {% if img.b64 %}<img src="data:image/png;base64,{{ img.b64 }}" alt="">{% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  <hr class="ahrule">
+  <div class="alead">{{ subtitle or product_title }}</div>
+  <div class="ameta">
+    <div class="ameta-l">
+      <span class="dot"></span>
+      <span class="ameta-item">Issue {{ vol }}</span>
+      <span class="ameta-item" style="color:#333">·</span>
+      <span class="ameta-item">{{ product_title }}</span>
+    </div>
+    <div class="atags">{% for tag in tags[:4] %}<span>{{ tag }}</span>{% endfor %}</div>
+  </div>
+</div>
+
+{% elif cover_layout == "B" %}
+<!-- ===== LAYOUT B: Full-bleed Hero ===== -->
+<div class="layout-b">
+  <div class="bhero">
+    {% if images and images[0].b64 %}
+    <img src="data:image/png;base64,{{ images[0].b64 }}" alt="">
+    {% else %}
+    <div style="width:100%;height:100%;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%)"></div>
+    {% endif %}
+    <div class="boverlay"></div>
+    <div class="boverlay2"></div>
+  </div>
+  <div class="btop">
+    <span class="blabel">{{ product_title }} · Vol.{{ vol }}</span>
+    <span class="blabel">{{ date }}</span>
+  </div>
+  {% if tags %}
+  <div class="btags">{% for tag in tags[:3] %}<span>{{ tag }}</span>{% endfor %}</div>
+  {% endif %}
+  <div class="bbottom">
+    <div class="bcat">教辅资料 · {{ product_title }}</div>
+    <h1 class="btitle">{{ note_title }}</h1>
+    <div class="bsub">{{ subtitle or product_title }}</div>
+  </div>
+</div>
+
+{% elif cover_layout == "C" %}
+<!-- ===== LAYOUT C: Serif Center ===== -->
+<div class="layout-c">
+  <div class="ctop">
+    <span>Vol. {{ vol }}</span>
+    <span>{{ date }}</span>
+  </div>
+  <div class="ccat">教辅资料 · {{ product_title }}</div>
+  <h1 class="ctitle">{{ note_title }}</h1>
+  <div class="cdivider"></div>
+  <div class="csub">{{ subtitle or product_title }}</div>
+  {% if images %}
+  <div class="cimg-wrap">
+    <div class="cframe">
+      <img src="data:image/png;base64,{{ images[0].b64 }}" alt="">
+    </div>
+  </div>
+  {% endif %}
+  <div style="flex:1;min-height:8px"></div>
+  <div class="cbot">{% for tag in tags[:6] %}<span>{{ tag }}</span>{% endfor %}</div>
+</div>
+
+{% elif cover_layout == "D" %}
+<!-- ===== LAYOUT D: Dark Cinematic ===== -->
+<div class="layout-d">
+  <div class="dbg">
+    {% if images and images[0].b64 %}
+    <img src="data:image/png;base64,{{ images[0].b64 }}" alt="">
+    {% endif %}
+    <div class="doverlay"></div>
+  </div>
+  <div class="dcontent">
+    <div class="dtop">
+      <span>{{ product_title }} · Vol.{{ vol }}</span>
+      <span>{{ date }}</span>
+    </div>
+    <div class="dmid">
+      <div class="dcat">教辅资料</div>
+      <h1 class="dtitle">{{ note_title }}</h1>
+      <div class="dsub">{{ subtitle or product_title }}</div>
+    </div>
+    <div class="dbot">
+      <div class="dbot-l">
+        <span class="marker"></span>
+        <span class="dbot-item">Issue {{ vol }}</span>
+        <span class="dbot-item" style="color:rgba(255,255,255,.15)">·</span>
+        <span class="dbot-item">{{ product_title }}</span>
+      </div>
+      <div class="dtags">{% for tag in tags[:4] %}<span>{{ tag }}</span>{% endfor %}</div>
+    </div>
+  </div>
+</div>
+
+{% else %}
+<!-- ===== LAYOUT E: Product Grid ===== -->
+<div class="layout-e">
+  <div class="etop">
+    <span>Vol. {{ vol }} · Guizang</span>
+    <span>{{ date }}</span>
+  </div>
+  <div class="ecat">教辅资料 · {{ product_title }}</div>
+  <h1 class="etitle">{{ note_title }}</h1>
+  {% if images %}
+  <div class="egrid">
+    {% for img in images %}
+    <div class="ecell" style="position:relative">
+      {% if img.b64 %}<img src="data:image/png;base64,{{ img.b64 }}" alt="">{% endif %}
+      <div class="tint"></div>
+    </div>
+    {% endfor %}
+    {% if images|length == 1 %}<div class="ecell" style="opacity:0.3">{% if images[0].b64 %}<img src="data:image/png;base64,{{ images[0].b64 }}" alt="" style="filter:blur(8px)">{% endif %}<div class="tint"></div></div>{% endif %}
+  </div>
+  {% endif %}
+  <div class="emeta">
+    <div class="emeta-item">Issue {{ vol }} · {{ product_title }}</div>
+    <div class="etags">{% for tag in tags[:3] %}<span>{{ tag }}</span>{% endfor %}</div>
+  </div>
+</div>
+{% endif %}
+
+</body>
+</html>
