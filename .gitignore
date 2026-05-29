@@ -154,6 +154,10 @@ secrets.json
 xhs_tool/output/
 xhs_tool/input/screenshots/
 
+# xhs_tool 静态资源（视频不入 git，本地运行时手动放）
+xhs_tool/static/*.mp4
+xhs_tool/static/*.webm
+
 # Spyder project settings
 .spyderproject
 .spyproject

@@ -10,6 +10,7 @@ font = "sans serif"
 headless = true
 runOnSave = false
 showErrorDetails = true
+enableStaticServing = true
 
 [browser]
 gatherUsageStats = false

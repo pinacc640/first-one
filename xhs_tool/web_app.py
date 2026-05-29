@@ -69,10 +69,33 @@ html, body, [class*="st-"], [class*="css-"] {
 }
 .stApp {
     background:
-        radial-gradient(ellipse 80% 60% at 20% 0%, rgba(168, 85, 247, 0.12) 0%, transparent 60%),
-        radial-gradient(ellipse 70% 50% at 80% 100%, rgba(6, 182, 212, 0.10) 0%, transparent 60%),
-        linear-gradient(135deg, #0a0613 0%, #0f0a1f 25%, #0d1023 50%, #0a0a18 100%) !important;
+        radial-gradient(ellipse 80% 60% at 20% 0%, rgba(168, 85, 247, 0.10) 0%, transparent 60%),
+        radial-gradient(ellipse 70% 50% at 80% 100%, rgba(6, 182, 212, 0.08) 0%, transparent 60%),
+        linear-gradient(135deg, rgba(10, 6, 19, 0.55) 0%, rgba(15, 10, 31, 0.55) 25%, rgba(13, 16, 35, 0.55) 50%, rgba(10, 10, 24, 0.55) 100%) !important;
     background-attachment: fixed;
+}
+
+/* ============ 视频背景 ============ */
+.bg-video {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover;
+    z-index: -2;
+    pointer-events: none;
+    filter: saturate(1.1) brightness(0.85);
+}
+.bg-video-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+        radial-gradient(ellipse 80% 60% at 20% 0%, rgba(168, 85, 247, 0.18) 0%, transparent 55%),
+        radial-gradient(ellipse 70% 50% at 80% 100%, rgba(6, 182, 212, 0.14) 0%, transparent 60%),
+        linear-gradient(to bottom, rgba(8, 8, 12, 0.78) 0%, rgba(8, 8, 12, 0.65) 50%, rgba(8, 8, 12, 0.85) 100%);
 }
 
 /* ============ Hero 区 ============ */
@@ -225,6 +248,16 @@ html, body, [class*="st-"], [class*="css-"] {
     border: none !important;
     border-radius: 9999px !important;
     font-weight: 600 !important;
+    font-size: 0.875rem !important;
+    padding: 8px 22px !important;
+    width: auto !important;
+    min-width: 130px !important;
+    white-space: nowrap !important;
+    box-shadow: 0 4px 20px rgba(168, 85, 247, 0.32) !important;
+}
+[data-testid="stFileUploader"] section button:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 8px 28px rgba(168, 85, 247, 0.45) !important;
 }
 
 /* ============ 进度条 ============ */
@@ -570,6 +603,14 @@ def generate_cover_with_imagen(client, product_title, note_title):
 
 # ============ 主界面 ============
 def main():
+    # 视频背景
+    st.markdown("""
+    <video class="bg-video" autoplay muted loop playsinline>
+      <source src="app/static/bg.mp4" type="video/mp4">
+    </video>
+    <div class="bg-video-overlay"></div>
+    """, unsafe_allow_html=True)
+
     # 标题（品牌 Hero）
     st.markdown("""
     <div class="brand-hero">
